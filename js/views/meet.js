@@ -5,30 +5,56 @@ import { S } from "../state.js";
 import { pipo } from "../ui/pipo.js";
 import { heartSVG } from "../ui/icons.js";
 
-export function meetView(v){
-  var n=S.meet,name=store.get("name",""),h='<section class="meet center">';
-  if(n===0){
-    h+=pipo("cheer")+'<h2>¡Hola! Soy Pipo</h2>'+
-      '<p class="mt">Quiero ser el mejor estudiante de inglés del cole, pero los verbos irregulares me dan guerra. ¿Me ayudas a aprenderlos?</p>'+
-      '<div class="card mt" style="text-align:left"><label for="nm" class="muted" style="font-size:16px">¿Cómo te llamas? (opcional)</label>'+
-      '<input class="field" id="nm" maxlength="20" autocomplete="off" placeholder="Tu nombre" value="'+esc(name)+'">'+
+export function meetView(v) {
+  var n = S.meet,
+    name = store.get("name", ""),
+    h = '<section class="meet center">';
+  if (n === 0) {
+    h +=
+      pipo("cheer") +
+      "<h2>¡Hola! Soy Pipo</h2>" +
+      '<p class="mt">Quiero ser el mejor estudiante de inglés del cole, pero los verbos irregulares me dan guerra. ¿Me ayudas a aprenderlos?</p>' +
+      '<div class="card mt" style="text-align:left"><label for="nm" class="muted" style="font-size:16px">¿Cómo te llamas? (opcional)</label>' +
+      '<input class="field" id="nm" maxlength="20" autocomplete="off" placeholder="Tu nombre" value="' +
+      esc(name) +
+      '">' +
       '<p class="muted" style="font-size:15px;margin-top:6px">Tu nombre solo se guarda en este dispositivo.</p></div>';
-  }else if(n===1){
-    h+=pipo("think")+'<h2>Así se juega</h2>'+
-      '<div class="card mt" style="text-align:left"><p>La tabla tiene cuatro columnas, como en un cuaderno:</p>'+
-      '<div class="legend"><span class="h0" style="background:var(--h0)">Infinitive</span><span style="background:var(--h1)">Past simple</span><span style="background:var(--h2)">Past participle</span><span style="background:var(--h3)">Significado</span></div>'+
-      '<p>Toca una ficha y luego la casilla vacía donde encaja.</p></div>'+
-      '<div class="card mt" style="text-align:left"><div class="row" style="flex-wrap:nowrap">'+
-      '<div class="hearts">'+heartSVG(false)+heartSVG(false)+heartSVG(false)+'</div></div>'+
+  } else if (n === 1) {
+    h +=
+      pipo("think") +
+      "<h2>Así se juega</h2>" +
+      '<div class="card mt" style="text-align:left"><p>La tabla tiene cuatro columnas, como en un cuaderno:</p>' +
+      '<div class="legend"><span class="h0" style="background:var(--h0)">Infinitive</span><span style="background:var(--h1)">Past simple</span><span style="background:var(--h2)">Past participle</span><span style="background:var(--h3)">Significado</span></div>' +
+      "<p>Toca una ficha y luego la casilla vacía donde encaja.</p></div>" +
+      '<div class="card mt" style="text-align:left"><div class="row" style="flex-wrap:nowrap">' +
+      '<div class="hearts">' +
+      heartSVG(false) +
+      heartSVG(false) +
+      heartSVG(false) +
+      "</div></div>" +
       '<p style="margin-top:6px">Tengo <b>5 vidas</b>. Cada error me quita una. Cada <b>10 aciertos seguidos</b> gano una extra. ¡No me dejes caer!</p></div>';
-  }else{
-    h+=pipo("happy")+'<h2>Tú decides'+(name?', '+esc(name):'')+'</h2>'+
-      '<div class="card mt" style="text-align:left"><p><b>Tus verbos:</b> elige cuáles quieres practicar y añade los que te manden en clase.</p>'+
-      '<p class="mt"><b>La dificultad:</b> más huecos en blanco cuanto más difícil.</p>'+
+  } else {
+    h +=
+      pipo("happy") +
+      "<h2>Tú decides" +
+      (name ? ", " + esc(name) : "") +
+      "</h2>" +
+      '<div class="card mt" style="text-align:left"><p><b>Tus verbos:</b> elige cuáles quieres practicar y añade los que te manden en clase.</p>' +
+      '<p class="mt"><b>La dificultad:</b> más huecos en blanco cuanto más difícil.</p>' +
       '<p class="mt"><b>5 niveles</b> con verbos distintos. ¡Gana estrellas en cada uno!</p></div>';
   }
-  h+='<div class="dots" aria-hidden="true">'+[0,1,2].map(function(i){return '<i class="'+(i===n?"on":"")+'"></i>'}).join("")+'</div>'+
-    '<div class="row center mt">'+(n>0?'<button class="btn" data-act="meetback">Atrás</button>':'')+
-    '<button class="btn main big" data-act="meetnext">'+(n<2?"Siguiente":"¡Vamos!")+'</button></div></section>';
-  v.innerHTML=h;
+  h +=
+    '<div class="dots" aria-hidden="true">' +
+    [0, 1, 2]
+      .map(function (i) {
+        return '<i class="' + (i === n ? "on" : "") + '"></i>';
+      })
+      .join("") +
+    "</div>" +
+    '<div class="row center mt">' +
+    (n > 0 ? '<button class="btn" data-act="meetback">Atrás</button>' : "") +
+    '<button class="btn main big" data-act="meetnext">' +
+    (n < 2 ? "Siguiente" : "¡Vamos!") +
+    "</button></div></section>";
+  v.innerHTML = h;
 }

@@ -1,6 +1,7 @@
 // Los 30 verbos base: [infinitivo, past simple, past participle, significado (catalán), truco, pista].
 // Los significados vienen tal cual del cuaderno original.
 
+// prettier-ignore
 export const BASE=[
 ["be","was / were","been","ser / estar","Was va con I, he, she, it. Were va con you, we, they.","Es el verbo más raro: tiene dos formas en el pasado simple."],
 ["become","became","become","convertir-se","El participio de become es igual que el infinitivo, como come.","Una de las formas es idéntica al infinitivo."],

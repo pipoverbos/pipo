@@ -8,12 +8,12 @@ import { verbsView } from "./views/verbs.js";
 import { mapView } from "./views/map.js";
 import { gameView } from "./views/game.js";
 
-registerView("load",loadView);
-registerView("meet",meetView);
-registerView("home",homeView);
-registerView("verbs",verbsView);
-registerView("map",mapView);
-registerView("game",gameView);
+registerView("load", loadView);
+registerView("meet", meetView);
+registerView("home", homeView);
+registerView("verbs", verbsView);
+registerView("map", mapView);
+registerView("game", gameView);
 
 initEvents();
 render();
