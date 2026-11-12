@@ -1,10 +1,30 @@
 // Integridad de los datos: protege contra erratas al añadir o editar verbos y niveles.
 import { describe, expect, it } from "vitest";
 import { BASE } from "../../js/data/base-verbs.js";
-import { COLN, DIFFD, DIFFS, LV, MIN, TIPS } from "../../js/data/config.js";
+import { COLN, DIFFD, DIFFS, LISTS, LV, MIN, TIPS } from "../../js/data/config.js";
+import { listInfs } from "../../js/verbs.js";
 
-describe("verbos base", () => {
-  it("son 30", () => expect(BASE).toHaveLength(30));
+describe("verbos", () => {
+  it("son 80: los 30 del cuaderno (be–leave) y 50 más", () => {
+    expect(BASE).toHaveLength(80);
+    expect(BASE[0][0]).toBe("be");
+    expect(BASE[29][0]).toBe("leave");
+    expect(BASE[30][0]).toBe("bite");
+    expect(BASE[79][0]).toBe("write");
+  });
+  it("ningún valor se repite dentro de una columna, para que cada fila se reconozca por cualquier celda", () => {
+    for (const col of [0, 1, 2, 3]) {
+      const values = BASE.map((v) => v[col]);
+      expect(new Set(values).size, `columna ${col}`).toBe(values.length);
+    }
+  });
+  it("los 50 verbos nuevos están en orden alfabético", () => {
+    const added = BASE.slice(30).map((v) => v[0]);
+    expect(added).toEqual([...added].sort());
+  });
+  it("las pistas no repiten el truco palabra por palabra", () => {
+    for (const v of BASE) expect(v[5], v[0]).not.toBe(v[4]);
+  });
   it("cada verbo tiene 6 campos con texto: 3 formas, significado, truco y pista", () => {
     for (const verb of BASE) {
       expect(verb, verb[0]).toHaveLength(6);
@@ -22,6 +42,26 @@ describe("verbos base", () => {
     for (const v of BASE) for (const form of [v[1], v[2]]) expect(form).toMatch(/^[a-z]+( ?\/ ?[a-z]+)?$/);
   });
   it("hay verbos de sobra para jugar", () => expect(BASE.length).toBeGreaterThanOrEqual(MIN));
+});
+
+describe("listas de verbos", () => {
+  const listVerbs = LISTS.map((l) => listInfs(l));
+  it("las listas 1 y 2 son las del cuaderno original (15 y 15)", () => {
+    expect(listVerbs[0]).toHaveLength(15);
+    expect(listVerbs[1]).toHaveLength(15);
+    expect(listVerbs[0].at(-1)).toBe("eat");
+    expect(listVerbs[1][0]).toBe("fall");
+  });
+  it("juntas cubren todos los verbos, sin huecos ni solapes", () => {
+    expect(listVerbs.flat()).toEqual(BASE.map((v) => v[0]));
+  });
+  it("cada lista tiene verbos de sobra para jugar", () => {
+    for (const l of listVerbs) expect(l.length).toBeGreaterThanOrEqual(MIN);
+  });
+  it("los ids no se repiten", () => {
+    const ids = LISTS.map((l) => l.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
 });
 
 describe("configuración", () => {

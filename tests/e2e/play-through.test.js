@@ -1,13 +1,14 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { BASE } from "../../js/data/base-verbs.js";
 import { $, $$, act, boot, modalTitle, solve, stored } from "../helpers/app.js";
 
 describe("partida completa sin errores", () => {
   beforeAll(() => boot());
 
-  it("el inicio permite jugar con los 30 verbos", () => {
+  it("el inicio permite jugar con todos los verbos", () => {
     expect($(".home")).not.toBeNull();
     expect($('[data-act="play"]').disabled).toBe(false);
-    expect($(".opt small").textContent).toContain("30 elegidos");
+    expect($(".opt small").textContent).toContain(`${BASE.length} elegidos`);
   });
 
   it("el mapa solo tiene abierto el nivel 1", () => {

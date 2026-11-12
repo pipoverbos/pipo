@@ -63,7 +63,7 @@ export function homeView(v) {
     '<button class="opt" data-act="verbs"><span><b>Mis verbos</b><small>' +
     n +
     (n === 1 ? " elegido" : " elegidos") +
-    ' · añade los tuyos</small></span><span aria-hidden="true">›</span></button>' +
+    ' · elige por listas</small></span><span aria-hidden="true">›</span></button>' +
     (missN >= 3
       ? '<button class="opt" data-act="practice"><span><b>Repaso de errores</b><small>Practica los ' +
         Math.min(missN, 8) +

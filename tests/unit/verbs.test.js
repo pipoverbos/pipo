@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { BASE } from "../../js/data/base-verbs.js";
 
 // store.js guarda una copia en memoria, así que cada test importa módulos nuevos para empezar de cero.
 let v, store;
@@ -70,18 +71,20 @@ describe("errores guardados", () => {
   });
 });
 
-describe("verbos elegidos y propios", () => {
-  it("por defecto se eligen los 30 verbos base", () => {
-    expect(v.selV()).toHaveLength(30);
-    expect(v.custom()).toEqual([]);
-  });
-  it("un verbo propio aparece en la lista pero no queda elegido solo", () => {
-    store.set("custom", [["swim", "swam", "swum", "nadar", "truco", "pista"]]);
-    expect(v.allV()).toHaveLength(31);
-    expect(v.selV()).toHaveLength(30);
+describe("verbos elegidos y listas", () => {
+  it("por defecto se eligen todos los verbos", () => {
+    expect(v.selV()).toHaveLength(BASE.length);
   });
   it("saveSel guarda la selección", () => {
     v.saveSel(new Set(["go", "be"]));
     expect(v.selV().map((x) => x[0])).toEqual(["be", "go"]);
+  });
+  it("ignora verbos guardados que ya no existen (p. ej. los propios de versiones antiguas)", () => {
+    store.set("sel", ["be", "swimmer", "go"]);
+    expect(v.selV().map((x) => x[0])).toEqual(["be", "go"]);
+  });
+  it("listInfs devuelve los infinitivos de la lista, de `from` a `to`", () => {
+    expect(v.listInfs({ from: "be", to: "eat" })).toHaveLength(15);
+    expect(v.listInfs({ from: "go", to: "go" })).toEqual(["go"]);
   });
 });

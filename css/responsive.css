@@ -115,17 +115,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 0 16px;
   }
-  .form {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px 16px;
-  }
-  .form > p,
-  .form > button {
-    grid-column: 1/-1;
-  }
-  .form > button {
-    justify-self: start;
-  }
   .gwrap {
     display: grid;
     grid-template-columns: 340px 1fr;

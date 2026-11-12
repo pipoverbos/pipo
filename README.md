@@ -11,7 +11,7 @@ Proyecto personal de Yuna: también es una pieza de portfolio (yunaespejo.com) y
 HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por responsabilidad (ver «Estructura del repositorio»). Ya funciona:
 
 - Pantalla de carga y presentación de Pipo (3 pasos, con nombre opcional).
-- Elección de verbos: 30 verbos de base, filtros rápidos (Lista 1, Lista 2, Todos, Ninguno, Solo los míos) y buscador. Se pueden añadir y borrar verbos propios.
+- Elección de verbos: 80 verbos y 6 listas para elegir de golpe (Lista 1 a Lista 6, más Todos y Ninguno), marcar verbos sueltos y buscador. Las listas 1 y 2 son las del cuaderno original.
 - Tres dificultades (Fácil, Normal, Difícil) que cambian cuántos huecos hay y cuántas fichas trampa aparecen.
 - Mapa de 5 niveles que se desbloquean en orden y dan hasta 3 estrellas:
   1. Calentamiento · 2. En marcha · 3. Sin red (puede faltar el infinitivo) · 4. Con trampas (fichas falsas tipo `breaked`) · 5. Escribe tú (sin fichas, se escribe).
@@ -19,7 +19,7 @@ HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por 
 - Repaso de errores: guarda los verbos que más se fallan y ofrece una ronda con ellos.
 - Sonidos (se pueden silenciar), confeti, modo oscuro automático, diseño responsive (móvil y escritorio).
 
-Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): nombre, dificultad, verbos elegidos y propios, estrellas, errores y sonido. No se envía nada a ningún servidor.
+Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): nombre, dificultad, verbos elegidos, estrellas, errores y sonido. No se envía nada a ningún servidor.
 
 ## Preparación para GitHub Pages (hecho)
 
@@ -56,7 +56,7 @@ npm run format     # aplica Prettier
 Los tests están en `tests/`:
 
 - `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas) e integridad de los datos de verbos y niveles.
-- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y gestión de verbos propios.
+- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas.
 
 La integración continua (`.github/workflows/ci.yml`) ejecuta todo esto en cada push a `main` y en cada pull request.
 
@@ -153,12 +153,12 @@ El público es de 12-13 años. En España, el tratamiento de datos de menores de
     ├── game.js          # reglas: niveles, vidas, aciertos, fin de partida
     ├── verbs.js         # verbos elegidos, comparación, estrellas, errores
     ├── audio.js · confetti.js · utils.js
-    ├── data/            # base-verbs.js (los 30 verbos) y config.js (niveles, textos)
+    ├── data/            # base-verbs.js (los 80 verbos) y config.js (niveles, listas, textos)
     ├── ui/              # pipo.js, icons.js, modal.js
     └── views/           # load, meet, home, verbs, map, game
 ```
 
-Los 30 verbos base están en `js/data/base-verbs.js`. Siguen siendo JavaScript y no un `.json` porque `fetch` tampoco funciona con `file://` y así no hay carga asíncrona.
+Los 80 verbos están en `js/data/base-verbs.js`, y las listas 1 a 6 se definen en `js/data/config.js` (`LISTS`) por su primer y último verbo. Siguen siendo JavaScript y no un `.json` porque `fetch` tampoco funciona con `file://` y así no hay carga asíncrona.
 
 ## Reglas de trabajo para Claude Code
 
@@ -166,7 +166,7 @@ Los 30 verbos base están en `js/data/base-verbs.js`. Siguen siendo JavaScript y
 - Explicar qué se va a cambiar antes de hacerlo y preguntar si algo no está claro.
 - No empezar la fase 2 ni ninguna tarea de la hoja de ruta sin confirmación expresa.
 - Mantener el español como idioma de la interfaz y de los comentarios del README.
-- No inventar datos de verbos: los significados están en catalán, tal como aparecen en el cuaderno de la autora.
+- No inventar datos de verbos por cuenta propia: los significados están en catalán. Los 30 primeros (be–leave) son tal cual del cuaderno de la autora; los 50 siguientes (bite–write) se redactaron a petición suya y están pendientes de revisión con el profesorado.
 
 ## Notas sobre los datos de verbos
 

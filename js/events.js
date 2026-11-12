@@ -2,13 +2,13 @@
 import { $ } from "./utils.js";
 import { store } from "./store.js";
 import { S, R, setR } from "./state.js";
-import { custom, allV, selSet, selV, saveSel, unlocked } from "./verbs.js";
+import { selSet, selV, saveSel, unlocked, listInfs } from "./verbs.js";
 import { BASE } from "./data/base-verbs.js";
-import { MIN, COLN } from "./data/config.js";
+import { MIN, COLN, LISTS } from "./data/config.js";
 import { snd } from "./audio.js";
 import { go, render } from "./router.js";
 import { closeModal } from "./ui/modal.js";
-import { refreshVerbs, addVerb } from "./views/verbs.js";
+import { refreshVerbs } from "./views/verbs.js";
 import { say, renderPlay } from "./views/game.js";
 import { startLevel, startPractice, place, check } from "./game.js";
 
@@ -81,37 +81,14 @@ export function initEvents() {
         break;
       case "verbs":
         S.vq = "";
-        S.del = null;
         go("verbs");
         break;
       case "pre": {
         var pr = a.dataset.p,
           s;
-        if (pr === "all")
-          s = new Set(
-            allV().map(function (v) {
-              return v[0];
-            })
-          );
+        if (pr === "all") s = new Set(BASE.map((v) => v[0]));
         else if (pr === "none") s = new Set();
-        else if (pr === "l1")
-          s = new Set(
-            BASE.slice(0, 15).map(function (v) {
-              return v[0];
-            })
-          );
-        else if (pr === "l2")
-          s = new Set(
-            BASE.slice(15).map(function (v) {
-              return v[0];
-            })
-          );
-        else
-          s = new Set(
-            custom().map(function (v) {
-              return v[0];
-            })
-          );
+        else s = new Set(listInfs(LISTS.find((l) => l.id === pr)));
         saveSel(s);
         refreshVerbs();
         break;
@@ -125,26 +102,6 @@ export function initEvents() {
         refreshVerbs();
         break;
       }
-      case "del": {
-        var di = a.dataset.inf;
-        if (S.del === di) {
-          store.set(
-            "custom",
-            custom().filter(function (v) {
-              return v[0] !== di;
-            })
-          );
-          var s2 = selSet();
-          s2.delete(di);
-          saveSel(s2);
-          S.del = null;
-        } else S.del = di;
-        refreshVerbs();
-        break;
-      }
-      case "addverb":
-        addVerb();
-        break;
       case "level": {
         var i = +a.dataset.i;
         if (unlocked(i, store.get("diff", "normal"))) {

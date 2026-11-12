@@ -2,7 +2,8 @@
 import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
 import { S, R, setR } from "./state.js";
-import { selV, selSet, allV, score, reg, same, getStars, missMap, addMiss } from "./verbs.js";
+import { BASE } from "./data/base-verbs.js";
+import { selV, selSet, score, reg, same, getStars, missMap, addMiss } from "./verbs.js";
 import { LV } from "./data/config.js";
 import { snd } from "./audio.js";
 import { confetti } from "./confetti.js";
@@ -47,10 +48,9 @@ export function levelVerbs(i) {
 export function practiceVerbs() {
   var mm = missMap(),
     sel = selSet();
-  return allV()
-    .filter(function (v) {
-      return sel.has(v[0]) && mm[v[0]] > 0;
-    })
+  return BASE.filter(function (v) {
+    return sel.has(v[0]) && mm[v[0]] > 0;
+  })
     .sort(function (a, b) {
       return mm[b[0]] - mm[a[0]];
     })

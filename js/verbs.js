@@ -1,12 +1,18 @@
-// Verbos elegidos y propios, comparación de respuestas, estrellas y errores.
+// Verbos elegidos y listas, comparación de respuestas, estrellas y errores.
 import { store } from "./store.js";
 import { BASE } from "./data/base-verbs.js";
 
-export function custom() {
-  return store.get("custom", []);
-}
-export function allV() {
-  return BASE.concat(custom());
+/** Infinitivos de una lista de LISTS (de `from` a `to`, según el orden de BASE). */
+export function listInfs(list) {
+  var a = BASE.findIndex(function (v) {
+      return v[0] === list.from;
+    }),
+    b = BASE.findIndex(function (v) {
+      return v[0] === list.to;
+    });
+  return BASE.slice(a, b + 1).map(function (v) {
+    return v[0];
+  });
 }
 export function selSet() {
   var s = store.get("sel", null);
@@ -18,7 +24,7 @@ export function selSet() {
 }
 export function selV() {
   var s = selSet();
-  return allV().filter(function (v) {
+  return BASE.filter(function (v) {
     return s.has(v[0]);
   });
 }
