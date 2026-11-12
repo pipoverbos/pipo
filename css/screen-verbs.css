@@ -1,25 +1,119 @@
 /* Pantalla Mis verbos y cabecera de pantalla */
 /* encabezado de pantalla */
-.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.top h2{font-size:34px;flex:1}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.top h2 {
+  font-size: 34px;
+  flex: 1;
+}
 
 /* mis verbos */
-.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.pill{min-height:40px;padding:4px 14px;border:2px solid var(--ink);border-radius:999px;background:var(--card);font-size:17px}
-.pill:active{background:var(--h3)}
-.vwrap{display:flex;gap:8px;margin-top:8px}
-.vrow{flex:1;display:flex;gap:10px;align-items:center;text-align:left;padding:8px 12px;min-height:56px;border:2px solid var(--ink);border-radius:12px;background:var(--card)}
-.vrow.on{background:var(--h0)}
-.chk{flex:0 0 24px;height:24px;border:2px solid var(--ink);border-radius:7px;background:var(--card);display:flex;align-items:center;justify-content:center}
-.chk svg{width:16px;height:16px;opacity:0}
-.vrow.on .chk svg{opacity:1}
-.vrow b{font-weight:400}
-.vrow small{display:block;color:var(--ink2);font-size:16px}
-.vrow.on small{color:var(--ink)}
-.tag{font-size:14px;padding:0 8px;border:1.5px solid var(--ink);border-radius:999px;background:var(--h2);margin-left:6px}
-details.card summary{cursor:pointer;font-family:"Caveat Brush","Patrick Hand",cursive;font-size:26px;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:36px}
-details.card summary::-webkit-details-marker{display:none}
-.form{display:grid;gap:8px;margin-top:10px}
-.form label{font-size:16px;color:var(--ink2);display:block;margin-bottom:2px}
-.err{color:var(--bad);min-height:24px}
-.okmsg{color:var(--good)}
+.chiprow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.pill {
+  min-height: 40px;
+  padding: 4px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 17px;
+}
+.pill:active {
+  background: var(--h3);
+}
+.vwrap {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.vrow {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 8px 12px;
+  min-height: 56px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--card);
+}
+.vrow.on {
+  background: var(--h0);
+}
+.chk {
+  flex: 0 0 24px;
+  height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chk svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+}
+.vrow.on .chk svg {
+  opacity: 1;
+}
+.vrow b {
+  font-weight: 400;
+}
+.vrow small {
+  display: block;
+  color: var(--ink2);
+  font-size: 16px;
+}
+.vrow.on small {
+  color: var(--ink);
+}
+.tag {
+  font-size: 14px;
+  padding: 0 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--h2);
+  margin-left: 6px;
+}
+details.card summary {
+  cursor: pointer;
+  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-size: 26px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
+}
+details.card summary::-webkit-details-marker {
+  display: none;
+}
+.form {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.form label {
+  font-size: 16px;
+  color: var(--ink2);
+  display: block;
+  margin-bottom: 2px;
+}
+.err {
+  color: var(--bad);
+  min-height: 24px;
+}
+.okmsg {
+  color: var(--good);
+}

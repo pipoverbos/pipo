@@ -42,7 +42,8 @@ describe("configuración", () => {
     }
   });
   it("nunca hay más huecos por fila que columnas jugables", () => {
-    for (const level of LV) for (const d of Object.keys(DIFFS)) expect(level.gaps[d]).toBeLessThanOrEqual(level.cols.length);
+    for (const level of LV)
+      for (const d of Object.keys(DIFFS)) expect(level.gaps[d]).toBeLessThanOrEqual(level.cols.length);
   });
   it("los textos de introducción de cada nivel no están vacíos", () => {
     for (const level of LV) expect(level.intro(2).length).toBeGreaterThan(10);

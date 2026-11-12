@@ -1,3 +1,15 @@
 /* Tipografías alojadas en el propio proyecto (Caveat Brush y Patrick Hand) */
-@font-face{font-family:"Caveat Brush";font-style:normal;font-weight:400;font-display:swap;src:url("../fonts/caveat-brush-latin-400-normal.woff2") format("woff2")}
-@font-face{font-family:"Patrick Hand";font-style:normal;font-weight:400;font-display:swap;src:url("../fonts/patrick-hand-latin-400-normal.woff2") format("woff2")}
+@font-face {
+  font-family: "Caveat Brush";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/caveat-brush-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Patrick Hand";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/patrick-hand-latin-400-normal.woff2") format("woff2");
+}

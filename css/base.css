@@ -1,9 +1,41 @@
 /* Reset y estilos base */
-*{box-sizing:border-box}
-html{background:var(--cover);scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;font-family:"Patrick Hand","Segoe UI",system-ui,sans-serif;font-size:18px;line-height:1.35;color:var(--ink);background:var(--cover);-webkit-text-size-adjust:100%}
-h1,h2,h3{font-family:"Caveat Brush","Patrick Hand",cursive;font-weight:400;margin:0;line-height:1.05}
-p{margin:0}
-button,input{font-family:inherit;font-size:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:3px solid var(--d1);outline-offset:2px}
+* {
+  box-sizing: border-box;
+}
+html {
+  background: var(--cover);
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+body {
+  margin: 0;
+  font-family: "Patrick Hand", "Segoe UI", system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--ink);
+  background: var(--cover);
+  -webkit-text-size-adjust: 100%;
+}
+h1,
+h2,
+h3 {
+  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.05;
+}
+p {
+  margin: 0;
+}
+button,
+input {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 3px solid var(--d1);
+  outline-offset: 2px;
+}

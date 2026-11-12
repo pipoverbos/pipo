@@ -143,7 +143,7 @@ Los 30 verbos base están en `js/data/base-verbs.js`. Siguen siendo JavaScript y
 
 ## Notas sobre los datos de verbos
 
-- Algunos significados vienen tal cual del cuaderno original: `hear` aparece como "escoltar", que en catalán suele ser *listen* (para *hear* se dice más bien "sentir" u "oir"). Pendiente de confirmar con el profesorado.
+- Algunos significados vienen tal cual del cuaderno original: `hear` aparece como "escoltar", que en catalán suele ser _listen_ (para _hear_ se dice más bien "sentir" u "oir"). Pendiente de confirmar con el profesorado.
 - `be` acepta `was / were` (o `was/were`) como respuesta del past simple.
 - Los verbos con dos formas válidas se escriben separadas por `/`.
 
