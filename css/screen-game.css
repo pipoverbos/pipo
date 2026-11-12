@@ -39,7 +39,7 @@
 }
 .gtitle {
   flex: 1;
-  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-family: "Caveat Brush", "Andika", cursive;
   font-size: 26px;
   line-height: 1.05;
 }
@@ -81,7 +81,7 @@
   border-spacing: 4px;
 }
 .vt th {
-  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-family: "Caveat Brush", "Andika", cursive;
   font-weight: 400;
   font-size: 19px;
   line-height: 1.05;
@@ -116,6 +116,34 @@
   outline: 3px solid var(--ink);
   outline-offset: 1px;
   background: var(--card);
+}
+/* Móvil estrecho: Andika es más ancha que la letra anterior. Con columnas iguales y la letra algo menor
+   no se parten palabras de 6-8 letras como «become» o «despertar». */
+@media (max-width: 420px) {
+  .vt col {
+    width: 25% !important;
+  }
+  .vt td {
+    font-size: 16px;
+  }
+  .vt td .hl {
+    padding: 0 3px;
+  }
+  .vt th {
+    font-size: 17px;
+  }
+}
+@media (max-width: 340px) {
+  .vt td {
+    font-size: 15px;
+    padding: 0;
+  }
+  .vt td .hl {
+    padding: 0 2px;
+  }
+  .vt th {
+    font-size: 15px;
+  }
 }
 .d0 {
   --dc: var(--d0);

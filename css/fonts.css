@@ -1,4 +1,5 @@
-/* Tipografías alojadas en el propio proyecto (Caveat Brush y Patrick Hand) */
+/* Tipografías alojadas en el propio proyecto: Caveat Brush (títulos) y Andika (texto).
+   Andika está pensada para aprender a leer: letras muy distinguibles, y la «a» y la «g» se parecen a las del cuaderno. */
 @font-face {
   font-family: "Caveat Brush";
   font-style: normal;
@@ -7,9 +8,16 @@
   src: url("../fonts/caveat-brush-latin-400-normal.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Patrick Hand";
+  font-family: "Andika";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("../fonts/patrick-hand-latin-400-normal.woff2") format("woff2");
+  src: url("../fonts/andika-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Andika";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/andika-latin-700-normal.woff2") format("woff2");
 }
