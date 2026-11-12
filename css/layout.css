@@ -1,0 +1,8 @@
+/* Hoja de cuaderno: la página sobre la que vive todo */
+.sheet{position:relative;max-width:600px;margin:14px auto;padding:20px 16px 28px 40px;border-radius:18px;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;box-shadow:0 6px 0 var(--cover-d),0 16px 30px rgba(0,0,0,.28);min-height:calc(100vh - 36px)}
+.sheet::before{content:"";position:absolute;left:30px;top:0;bottom:0;width:2px;background:var(--margin);opacity:.75}
+.hole{position:absolute;left:7px;width:15px;height:15px;border-radius:50%;background:var(--cover);box-shadow:inset 0 2px 3px rgba(0,0,0,.4)}
+@media (max-width:420px){.sheet{margin:8px;padding:16px 10px 24px 34px;border-radius:14px}.sheet::before{left:26px}.hole{left:5px}}

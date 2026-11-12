@@ -1,0 +1,30 @@
+/* Variables de diseño: colores y modo oscuro */
+:root{
+  --cover:#2A9D8F;--cover-d:#1D6F66;
+  --paper:#FBFAF2;--grid:#DCE8E3;--card:#FFFFFF;
+  --ink:#1E2A44;--ink2:#51607C;--margin:#F2828D;
+  --h0:#D6F06A;--h1:#8EDCF2;--h2:#CDAEF5;--h3:#FFF08A;
+  --d0:#86A51C;--d1:#2A9CBC;--d2:#8658CF;--d3:#BFA400;
+  --heart:#E8475F;--good:#2E9E68;--bad:#D9384C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --cover:#12332F;--cover-d:#0B201D;
+    --paper:#16221F;--grid:#223531;--card:#1F302C;
+    --ink:#EDF4F0;--ink2:#A9BDB6;--margin:#B95A66;
+    --h0:#667F1C;--h1:#1F6E85;--h2:#68489F;--h3:#85761A;
+    --d0:#A6C73C;--d1:#5CC4E3;--d2:#B28CF0;--d3:#E0C93A;
+    --heart:#FF6B80;--good:#4CC58A;--bad:#FF7A8A;
+  }
+}
+:root[data-theme="dark"]{
+  --cover:#12332F;--cover-d:#0B201D;
+  --paper:#16221F;--grid:#223531;--card:#1F302C;
+  --ink:#EDF4F0;--ink2:#A9BDB6;--margin:#B95A66;
+  --h0:#667F1C;--h1:#1F6E85;--h2:#68489F;--h3:#85761A;
+  --d0:#A6C73C;--d1:#5CC4E3;--d2:#B28CF0;--d3:#E0C93A;
+  --heart:#FF6B80;--good:#4CC58A;--bad:#FF7A8A;
+}

@@ -1,0 +1,27 @@
+/* Pantalla de juego: marcador, fichas y tabla */
+/* juego */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.hearts{display:flex;gap:3px;align-items:center}
+.hearts svg{width:26px;height:24px}
+.hearts .lost{opacity:.3}
+.streak{display:flex;gap:4px;align-items:center;font-size:16px;color:var(--ink2)}
+.pip{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);display:inline-block}
+.pip.on{background:var(--h0)}
+.gtitle{flex:1;font-family:"Caveat Brush","Patrick Hand",cursive;font-size:26px;line-height:1.05}
+.tray{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.chip{min-height:44px;padding:6px 12px;border:2px solid var(--ink);border-radius:12px;background:var(--card);box-shadow:0 2px 0 var(--ink);font-size:18px;cursor:grab}
+.chip.sel{background:var(--h3);transform:translateY(-3px)}
+.typebar{margin:14px 0 10px}
+.typebar .row{flex-wrap:nowrap;margin-top:8px}
+.typebar input{flex:1;min-width:0}
+.vt{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:4px}
+.vt th{font-family:"Caveat Brush","Patrick Hand",cursive;font-weight:400;font-size:19px;line-height:1.05;padding:7px 2px;text-align:center;border-radius:8px 14px 9px 13px/12px 7px 13px 9px;background:var(--hc);color:var(--ink)}
+.vt th:nth-child(odd){transform:rotate(-1.2deg)}.vt th:nth-child(even){transform:rotate(1deg)}
+.vt td{height:48px;padding:2px;text-align:center;font-size:18px;line-height:1.1;word-break:break-word;border-radius:10px}
+.vt td.slot{border:2.5px dashed var(--dc);color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.18)}
+.vt td.slot.cur{outline:3px solid var(--ink);outline-offset:1px;background:var(--card)}
+.d0{--dc:var(--d0)}.d1{--dc:var(--d1)}.d2{--dc:var(--d2)}.d3{--dc:var(--d3)}
+.shake{animation:sh .32s}
+@keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pop{animation:pop .28s ease-out}
+@keyframes pop{from{transform:scale(.97)}to{transform:scale(1)}}

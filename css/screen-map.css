@@ -1,0 +1,11 @@
+/* Mapa de niveles */
+/* mapa de niveles */
+.lvl{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin-top:12px;padding:10px 12px;border:2px solid var(--ink);border-radius:14px;background:var(--card);box-shadow:0 3px 0 var(--ink)}
+.lvl:active:not(.lock){transform:translateY(3px);box-shadow:none}
+.lvl.lock{opacity:.55;cursor:not-allowed}
+.badge{flex:0 0 46px;height:46px;border:2px solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Caveat Brush","Patrick Hand",cursive;font-size:26px;background:var(--hc)}
+.lvl b{font-family:"Caveat Brush","Patrick Hand",cursive;font-weight:400;font-size:24px;display:block;line-height:1.1}
+.lvl small{font-size:16px;color:var(--ink2);display:block;line-height:1.25}
+.lvl .body{flex:1}
+.stars{display:flex;gap:2px}
+.stars svg{width:22px;height:22px}
