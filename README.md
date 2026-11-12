@@ -6,7 +6,7 @@ Proyecto personal de Yuna: también es una pieza de portfolio (yunaespejo.com) y
 
 ## Estado actual (fase 1)
 
-Todo vive en un único archivo, `index.html` (HTML, CSS y JavaScript sin dependencias ni paso de compilación). Ya funciona:
+HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por responsabilidad (ver «Estructura del repositorio»). Ya funciona:
 
 - Pantalla de carga y presentación de Pipo (3 pasos, con nombre opcional).
 - Elección de verbos: 30 verbos de base, filtros rápidos (Lista 1, Lista 2, Todos, Ninguno, Solo los míos) y buscador. Se pueden añadir y borrar verbos propios.
@@ -19,16 +19,25 @@ Todo vive en un único archivo, `index.html` (HTML, CSS y JavaScript sin depende
 
 Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): nombre, dificultad, verbos elegidos y propios, estrellas, errores y sonido. No se envía nada a ningún servidor.
 
-## Lo que hay que hacer ahora
+## Preparación para GitHub Pages (hecho)
 
-Solo esto. Lo demás de este documento es contexto y hoja de ruta, no tareas inmediatas.
+- [x] Fuentes alojadas en `fonts/` con `@font-face` locales (sin Google Fonts).
+- [x] `index.html` en la raíz y `.nojekyll`.
+- [x] Repositorio en GitHub: https://github.com/yuna-espejo/pipo
+- [x] `meta description` y etiquetas Open Graph, con `og-image.png`.
+- [x] CSS y JavaScript separados en `css/` y `js/`.
 
-1. Alojar las fuentes en el propio repositorio (Caveat Brush y Patrick Hand, por ejemplo con `@fontsource`) y sustituir el `<link>` de Google Fonts por `@font-face` locales en `fonts/`.
-2. Dejar el proyecto listo para GitHub Pages: `index.html` en la raíz, `.nojekyll`, `README.md`.
-3. Inicializar git, hacer el primer commit y explicar cómo crear el repositorio y activar Pages (Settings → Pages → rama `main`).
-4. Añadir una etiqueta `<meta name="description">` y las etiquetas Open Graph básicas para que se vea bien al compartir el enlace.
+Lo demás de este documento es contexto y hoja de ruta, no tareas inmediatas. No añadir librerías ni frameworks.
 
-No cambiar la lógica del juego ni el diseño. No añadir librerías ni frameworks.
+## Ejecutarlo en local
+
+El JavaScript usa módulos ES, que los navegadores no cargan si abres `index.html` con doble clic (`file://`). Hace falta un servidor local, por ejemplo desde la carpeta del proyecto:
+
+```
+npx serve
+```
+
+o `python -m http.server 8000` y abrir http://localhost:8000. En GitHub Pages funciona sin hacer nada más.
 
 ## Hoja de ruta
 
@@ -91,17 +100,38 @@ El público es de 12-13 años. En España, el tratamiento de datos de menores de
 - **Accesibilidad:** foco visible, `aria-live` en el globo de Pipo, objetivos táctiles de al menos 44 px y respeto a `prefers-reduced-motion`.
 - **Responsive:** una columna en móvil, dos columnas desde 960 px.
 
-## Estructura prevista del repositorio
+## Estructura del repositorio
 
 ```
 /
-├── index.html        # juego completo (de momento todo en un archivo)
-├── fonts/            # fuentes alojadas en el propio repositorio
+├── index.html           # solo estructura: enlaza css/ y js/main.js
+├── og-image.png         # imagen al compartir el enlace
 ├── .nojekyll
-└── README.md
+├── fonts/               # Caveat Brush y Patrick Hand (+ licencias OFL)
+├── css/                 # estilos, en el orden en que se cargan
+│   ├── fonts.css        # @font-face
+│   ├── tokens.css       # variables de color y modo oscuro
+│   ├── base.css         # reset y estilos base
+│   ├── layout.css       # la hoja de cuaderno
+│   ├── components.css   # botones, tarjetas, campos, resaltador, Pipo
+│   ├── screen-*.css     # una hoja por pantalla (intro, verbs, map, game)
+│   ├── modal.css        # ventana modal y confeti
+│   └── responsive.css   # tablet, escritorio y movimiento reducido
+└── js/                  # módulos ES, sin compilar
+    ├── main.js          # punto de entrada
+    ├── router.js        # go() y render(); cada pantalla se registra
+    ├── state.js         # estado compartido (S: interfaz, R: partida)
+    ├── store.js         # localStorage (prefijo pipo2.)
+    ├── events.js        # clics, teclado y arrastrar y soltar
+    ├── game.js          # reglas: niveles, vidas, aciertos, fin de partida
+    ├── verbs.js         # verbos elegidos, comparación, estrellas, errores
+    ├── audio.js · confetti.js · utils.js
+    ├── data/            # base-verbs.js (los 30 verbos) y config.js (niveles, textos)
+    ├── ui/              # pipo.js, icons.js, modal.js
+    └── views/           # load, meet, home, verbs, map, game
 ```
 
-Más adelante, si el archivo crece, separar en `css/`, `js/` y `data/verbs.json` (los 30 verbos base están ahora en el array `BASE` dentro de `index.html`).
+Los 30 verbos base están en `js/data/base-verbs.js`. Siguen siendo JavaScript y no un `.json` porque `fetch` tampoco funciona con `file://` y así no hay carga asíncrona.
 
 ## Reglas de trabajo para Claude Code
 
