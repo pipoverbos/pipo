@@ -1,7 +1,7 @@
 // Reglas del juego: niveles, vidas, aciertos, errores y final de partida.
 import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
-import { S, R, setR } from "./state.js";
+import { R, setR } from "./state.js";
 import { BASE } from "./data/base-verbs.js";
 import { selV, selSet, score, reg, same, getStars, missMap, addMiss } from "./verbs.js";
 import { LV } from "./data/config.js";
@@ -10,7 +10,7 @@ import { confetti } from "./confetti.js";
 import { pipo } from "./ui/pipo.js";
 import { starsHTML } from "./ui/icons.js";
 import { modal } from "./ui/modal.js";
-import { render } from "./router.js";
+import { go } from "./router.js";
 import { say, renderHud, renderPlay, shakeSlot } from "./views/game.js";
 
 export function cfgFor(i) {
@@ -107,8 +107,7 @@ export function newLevel(cfg, idx, rows, keep) {
     });
   }
   shuffle(R.chips);
-  S.screen = "game";
-  render();
+  go("game");
   say(cfg.intro, "normal");
 }
 export function startLevel(i, keep) {

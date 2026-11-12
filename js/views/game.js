@@ -4,35 +4,49 @@ import { R } from "../state.js";
 import { COLN } from "../data/config.js";
 import { pipo } from "../ui/pipo.js";
 import { ICON, heartSVG } from "../ui/icons.js";
+import { focusSignature, restoreFocus } from "../ui/focus.js";
 
 export function gameView(v) {
   v.innerHTML =
     '<section><div class="top"><button class="iconbtn" data-act="map" aria-label="Salir al mapa">' +
     ICON.back +
-    '</button><div class="gtitle" id="gt"></div></div>' +
+    '</button><h1 class="gtitle" id="gt"></h1></div>' +
     '<div class="gwrap"><aside class="gside"><div class="hud" id="hud"></div>' +
+    // Región de anuncios fija: los lectores de pantalla no avisan de regiones que se crean ya con texto.
+    '<p class="sr-only" id="live" aria-live="polite" aria-atomic="true"></p>' +
     '<div class="talk" id="talk"></div><div id="tray"></div></aside><div class="gmain" id="tbl"></div></div></section>';
   $("#gt").textContent = (R.idx >= 0 ? "Nivel " + (R.idx + 1) + " · " : "") + R.cfg.n;
   renderHud();
   renderPlay();
 }
 export function renderHud() {
-  var h = '<div class="hearts" aria-label="' + R.lives + ' vidas">',
+  var h = '<div class="hearts" role="img" aria-label="' + R.lives + (R.lives === 1 ? " vida" : " vidas") + '">',
     slots = Math.max(5, R.lives);
   for (var i = 0; i < slots; i++) h += heartSVG(i >= R.lives);
-  h += '</div><div class="streak" aria-label="Racha: ' + R.streak + ' de 10">';
+  h +=
+    '</div><div class="streak" role="img" aria-label="Racha: ' +
+    R.streak +
+    ' de 10 aciertos seguidos. A los 10 ganas una vida.">';
   for (var j = 0; j < 10; j++) h += '<span class="pip' + (j < R.streak ? " on" : "") + '"></span>';
   h += "<span>+1 vida</span></div>";
   $("#hud").innerHTML = h;
 }
+var liveToggle = false;
 export function say(t, m) {
   var el = $("#talk");
   if (!el) return;
-  el.innerHTML = pipo(m || "normal") + '<div class="bubble pop" aria-live="polite"></div>';
+  el.innerHTML = pipo(m || "normal") + '<div class="bubble pop"></div>';
   el.querySelector(".bubble").textContent = t;
+  var live = $("#live");
+  if (live) {
+    // El espacio final alterna para que un mensaje repetido se vuelva a anunciar.
+    liveToggle = !liveToggle;
+    live.textContent = t + (liveToggle ? " " : "");
+  }
 }
 export function renderPlay() {
-  var c = R.cfg,
+  var sig = focusSignature($("#view")),
+    c = R.cfg,
     h = "";
   if (!R.done && !R.dead) {
     if (c.type) {
@@ -57,6 +71,8 @@ export function renderPlay() {
             (R.sel === k ? " sel" : "") +
             '" data-chip="' +
             k +
+            '" aria-pressed="' +
+            (R.sel === k) +
             '" draggable="true">' +
             esc(ch.t) +
             "</button>";
@@ -74,7 +90,18 @@ export function renderPlay() {
       if (!R.hid[i].has(f)) h += '<td><span class="hl h' + f + '">' + esc(v[f]) + "</span></td>";
       else if (R.placed[k])
         h += '<td><span class="hl h' + f + (R.last === k ? " draw" : "") + '">' + esc(R.placed[k]) + "</span></td>";
-      else h += '<td data-slot="' + k + '" class="slot d' + f + (R.selSlot === k ? " cur" : "") + '">?</td>';
+      else
+        h +=
+          '<td data-slot="' +
+          k +
+          '" class="slot d' +
+          f +
+          (R.selSlot === k ? " cur" : "") +
+          '" tabindex="0" role="button" aria-label="Hueco de ' +
+          COLN[f] +
+          ", fila " +
+          (i + 1) +
+          '">?</td>';
     }
     h += "</tr>";
   });
@@ -85,7 +112,7 @@ export function renderPlay() {
   if (R.selSlot !== null) {
     var ti = $("#ti");
     if (ti) ti.focus();
-  }
+  } else restoreFocus(sig, $("#view"), [".chip", "td[data-slot]", '[data-act="map"]']);
 }
 export function shakeSlot(k) {
   var el = document.querySelector('[data-slot="' + k + '"]');
