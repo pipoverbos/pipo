@@ -11,6 +11,8 @@ export async function boot({ seen = true, storage = {} } = {}) {
   for (const [k, v] of Object.entries(storage)) localStorage.setItem("pipo2." + k, JSON.stringify(v));
   const html = fs.readFileSync(path.resolve(import.meta.dirname, "../../index.html"), "utf8");
   document.body.innerHTML = html.match(/<body>([\s\S]*)<\/body>/)[1].replace(/<script[\s\S]*?<\/script>/g, "");
+  document.documentElement.lang = html.match(/<html[^>]*\blang="([^"]+)"/)?.[1] ?? "";
+  document.title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
   window.scrollTo = () => {};
   vi.useFakeTimers();
   await import("../../js/main.js");

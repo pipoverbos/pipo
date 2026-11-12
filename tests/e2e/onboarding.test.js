@@ -6,15 +6,15 @@ describe("primera visita", () => {
 
   it("termina la carga y presenta a Pipo", () => {
     expect($(".meet")).not.toBeNull();
-    expect($(".meet h2").textContent).toContain("Soy Pipo");
+    expect($(".meet h1").textContent).toContain("Soy Pipo");
   });
 
   it("recorre los 3 pasos y guarda el nombre", () => {
     type("#nm", "Ana");
     act("meetnext");
-    expect($(".meet h2").textContent).toBe("Así se juega");
+    expect($(".meet h1").textContent).toBe("Así se juega");
     act("meetnext");
-    expect($(".meet h2").textContent).toContain("Ana");
+    expect($(".meet h1").textContent).toContain("Ana");
     act("meetnext");
     expect($(".home")).not.toBeNull();
     expect(stored("name")).toBe("Ana");
