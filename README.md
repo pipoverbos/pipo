@@ -55,8 +55,8 @@ npm run format     # aplica Prettier
 
 Los tests están en `tests/`:
 
-- `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas) e integridad de los datos de verbos y niveles.
-- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas.
+- `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas), integridad de los datos de verbos, niveles y listas, y **contraste de los colores** de `css/tokens.css` (WCAG AA, claro y oscuro).
+- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas. Incluyen **accesibilidad**: axe-core sobre todas las pantallas, foco al cambiar de pantalla, juego con teclado y ventana modal.
 
 La integración continua (`.github/workflows/ci.yml`) ejecuta todo esto en cada push a `main` y en cada pull request.
 
@@ -124,7 +124,22 @@ El público es de 12-13 años. En España, el tratamiento de datos de menores de
 - **Tipografías:** Caveat Brush para títulos y Patrick Hand para el resto.
 - **Mascota:** Pipo, un SVG en línea con varios estados de ánimo (normal, feliz, pensativo, dolido, eufórico y "muerto").
 - **Sin emojis en la interfaz**, solo iconos SVG.
-- **Accesibilidad:** foco visible, `aria-live` en el globo de Pipo, objetivos táctiles de al menos 44 px y respeto a `prefers-reduced-motion`.
+- **Accesibilidad:** foco visible, objetivos táctiles de al menos 44 px y respeto a `prefers-reduced-motion`. Se puede jugar entero con el teclado: las casillas de la tabla son botones con nombre, el foco va al título al cambiar de pantalla y se conserva al repintar, y la ventana de resultado recibe el foco, deja el resto inerte y se cierra con Escape. Los mensajes de Pipo se anuncian por una región `aria-live` fija. Cada pantalla tiene un único `<h1>`.
+
+### Auditoría de accesibilidad y rendimiento
+
+Medida en Chrome real (Lighthouse más axe-core sobre 44 combinaciones de pantalla, tema claro/oscuro y móvil/escritorio, con teclado, contraste y tamaño táctil):
+
+|                                        | Antes                              | Después      |
+| -------------------------------------- | ---------------------------------- | ------------ |
+| Pantallas sin fallos de axe            | 7 de 44                            | **44 de 44** |
+| Se puede jugar solo con teclado        | No (las casillas no recibían foco) | Sí           |
+| Controles menores de 44 px             | 3                                  | 0            |
+| Lighthouse buenas prácticas            | 96 (sin favicon)                   | 100          |
+| Lighthouse rendimiento y accesibilidad | 100                                | 100          |
+
+Lighthouse solo evalúa la pantalla de carga: por eso la auditoría completa se hizo con axe sobre todas las pantallas. Lo que se corrigió y se mantiene vigilado por los tests: ARIA no válida en las filas de verbos, las vidas y las ventanas, el contraste del modo oscuro (`--h0`, `--h3`) y del rojo de error del modo claro (`--bad`), y la falta de `<h1>`. Sin verificar con un lector de pantalla real (NVDA, VoiceOver): conviene probarlo antes de dar la accesibilidad por cerrada.
+
 - **Responsive:** una columna en móvil, dos columnas desde 960 px.
 
 ## Estructura del repositorio
