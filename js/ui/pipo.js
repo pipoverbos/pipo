@@ -1,4 +1,5 @@
 // Pipo, la mascota: SVG en línea con varios estados de ánimo (normal, happy, cheer, think, hurt, dead).
+// El dibujo de Pipo no entra en la licencia MIT del código: todos los derechos reservados (ver README).
 
 const INK="#2B2140";
 export function pipo(m){

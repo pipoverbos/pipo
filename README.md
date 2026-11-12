@@ -149,4 +149,6 @@ Los 30 verbos base están en `js/data/base-verbs.js`. Siguen siendo JavaScript y
 
 ## Licencia
 
-Por decidir.
+- **Código**: [MIT](LICENSE), © 2026 Yuna Espejo.
+- **Pipo y la imagen de portada** (el dibujo SVG de la mascota en `js/ui/pipo.js` y `og-image.png`): todos los derechos reservados. Puedes verlos y jugar, pero no reutilizarlos ni redistribuirlos sin permiso.
+- **Tipografías** (Caveat Brush y Patrick Hand): [SIL Open Font License 1.1](fonts/), con sus licencias en `fonts/`.
