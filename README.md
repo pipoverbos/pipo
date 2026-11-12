@@ -1,5 +1,7 @@
 # Pipo y los verbos irregulares
 
+[![CI](https://github.com/yuna-espejo/pipo/actions/workflows/ci.yml/badge.svg)](https://github.com/yuna-espejo/pipo/actions/workflows/ci.yml)
+
 Juego web educativo para aprender los verbos irregulares del inglés (infinitivo, past simple y past participle), pensado para alumnado de 1º de ESO. Se juega rellenando una tabla como la de un cuaderno, con una mascota (Pipo) que tiene vidas, da consejos y reacciona a los aciertos y errores.
 
 Proyecto personal de Yuna: también es una pieza de portfolio (yunaespejo.com) y una base para crecer hacia clases con profesor y ranking.
@@ -38,6 +40,31 @@ npx serve
 ```
 
 o `python -m http.server 8000` y abrir http://localhost:8000. En GitHub Pages funciona sin hacer nada más.
+
+## Desarrollo
+
+El juego no tiene dependencias en producción. `package.json` solo trae herramientas de desarrollo (ESLint, Prettier, Vitest y jsdom). Hace falta Node 22 o superior.
+
+```
+npm install        # una vez
+npm run check      # lint + formato + tests (lo mismo que ejecuta la CI)
+npm test           # solo los tests
+npm run test:watch # tests en modo continuo
+npm run format     # aplica Prettier
+```
+
+Los tests están en `tests/`:
+
+- `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas) e integridad de los datos de verbos y niveles.
+- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y gestión de verbos propios.
+
+La integración continua (`.github/workflows/ci.yml`) ejecuta todo esto en cada push a `main` y en cada pull request.
+
+### Cómo se trabaja
+
+- Una rama por tarea (`feat/…`, `fix/…`, `chore/…`) y pull request hacia `main`.
+- Commits pequeños, con mensaje en español que explique el porqué.
+- Un pull request solo se fusiona con la CI en verde.
 
 ## Hoja de ruta
 
