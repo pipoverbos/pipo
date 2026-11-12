@@ -79,7 +79,7 @@ export function initEvents(){
   });
   document.addEventListener("dragstart",function(e){
     var c=e.target.closest&&e.target.closest("[data-chip]");
-    if(c&&R){R.sel=+c.dataset.chip;try{e.dataTransfer.setData("text/plain","x")}catch{}}
+    if(c&&R){R.sel=+c.dataset.chip;try{e.dataTransfer.setData("text/plain","x")}catch{/* algunos navegadores no permiten dataTransfer: se arrastra igual */}}
   });
   document.addEventListener("dragover",function(e){if(e.target.closest&&e.target.closest("[data-slot]"))e.preventDefault()});
   document.addEventListener("drop",function(e){

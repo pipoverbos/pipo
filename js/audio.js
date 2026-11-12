@@ -15,5 +15,5 @@ export function snd(t){
       g.gain.setValueAtTime(.0001,now+n[1]);g.gain.exponentialRampToValueAtTime(.11,now+n[1]+.02);g.gain.exponentialRampToValueAtTime(.0001,now+n[1]+n[2]);
       o.connect(g);g.connect(ac.destination);o.start(now+n[1]);o.stop(now+n[1]+n[2]+.03);
     });
-  }catch{}
+  }catch{/* sin audio (bloqueado o no disponible): el juego sigue sin sonido */}
 }
