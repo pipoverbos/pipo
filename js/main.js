@@ -1,4 +1,5 @@
 // Punto de entrada: registra las pantallas, activa los eventos y arranca.
+import { store } from "./store.js";
 import { registerView, render } from "./router.js";
 import { initEvents } from "./events.js";
 import { loadView } from "./views/load.js";
@@ -7,6 +8,8 @@ import { homeView } from "./views/home.js";
 import { verbsView } from "./views/verbs.js";
 import { mapView } from "./views/map.js";
 import { gameView } from "./views/game.js";
+
+store.init(); // antes de pintar nada: lleva los datos guardados a la versión actual
 
 registerView("load", loadView);
 registerView("meet", meetView);
