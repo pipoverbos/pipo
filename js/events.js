@@ -1,5 +1,5 @@
 // Eventos globales (delegación): clics, teclado, escritura y arrastrar y soltar.
-import { $ } from "./utils.js";
+import { $, cleanAlias, validAlias } from "./utils.js";
 import { store } from "./store.js";
 import { S, R, setR } from "./state.js";
 import { selSet, selV, saveSel, unlocked, listInfs } from "./verbs.js";
@@ -44,8 +44,16 @@ export function initEvents() {
     switch (act) {
       case "meetnext":
         if (S.meet === 0) {
-          var nm = $("#nm");
-          if (nm) store.set("name", nm.value.trim());
+          var nm = $("#nm"),
+            alias = cleanAlias(nm ? nm.value : "");
+          if (!validAlias(alias)) {
+            // Sin apodo no se puede seguir: se avisa en el propio campo y el foco vuelve a él.
+            $("#nm-err").textContent = "Escribe un apodo de 2 a 20 letras o números para poder jugar.";
+            nm.setAttribute("aria-invalid", "true");
+            nm.focus();
+            break;
+          }
+          store.set("name", alias);
         }
         if (S.meet < 2) {
           S.meet++;
@@ -141,6 +149,10 @@ export function initEvents() {
     if (e.key === "Enter" && e.target.id === "ti") {
       e.preventDefault();
       check();
+    }
+    if (e.key === "Enter" && e.target.id === "nm") {
+      e.preventDefault();
+      $('[data-act="meetnext"]').click();
     }
     // Las casillas de la tabla son role="button" sobre una celda: no responden solas a Enter ni a Espacio.
     if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("td[data-slot]")) {

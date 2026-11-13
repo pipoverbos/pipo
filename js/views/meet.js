@@ -1,4 +1,4 @@
-// Presentación de Pipo (3 pasos, con nombre opcional).
+// Presentación de Pipo (3 pasos). El primero pide un apodo obligatorio para poder jugar.
 import { esc } from "../utils.js";
 import { store } from "../store.js";
 import { S } from "../state.js";
@@ -14,11 +14,12 @@ export function meetView(v) {
       pipo("cheer") +
       "<h1>¡Hola! Soy Pipo</h1>" +
       '<p class="mt">Quiero ser el mejor estudiante de inglés del cole, pero los verbos irregulares me dan guerra. ¿Me ayudas a aprenderlos?</p>' +
-      '<div class="card mt" style="text-align:left"><label for="nm" class="muted" style="font-size:16px">¿Cómo te llamas? (opcional)</label>' +
-      '<input class="field" id="nm" maxlength="20" autocomplete="off" placeholder="Tu nombre" value="' +
+      '<div class="card mt" style="text-align:left"><label for="nm" class="muted" style="font-size:16px">Elige tu apodo para jugar</label>' +
+      '<input class="field" id="nm" maxlength="20" autocomplete="off" placeholder="Tu apodo" aria-describedby="nm-help nm-err" value="' +
       esc(name) +
       '">' +
-      '<p class="muted" style="font-size:15px;margin-top:6px">Tu nombre solo se guarda en este dispositivo.</p></div>';
+      '<p class="err" id="nm-err" role="alert"></p>' +
+      '<p class="muted" id="nm-help" style="font-size:15px;margin-top:6px">Usa un apodo, no tu nombre real ni tus apellidos. Solo se guarda en este dispositivo.</p></div>';
   } else if (n === 1) {
     h +=
       pipo("think") +

@@ -1,5 +1,5 @@
 // Pantalla de carga.
-import { $, esc, pick } from "../utils.js";
+import { $, esc, pick, validAlias } from "../utils.js";
 import { store } from "../store.js";
 import { S } from "../state.js";
 import { TIPS } from "../data/config.js";
@@ -33,7 +33,8 @@ export function loadView(v) {
       setTimeout(function () {
         if (S.screen === "load") {
           S.meet = 0;
-          go(store.get("seen", false) ? "home" : "meet");
+          // Sin apodo no se juega: también quien ya había visto la presentación pasa por ella.
+          go(store.get("seen", false) && validAlias(store.get("name", "")) ? "home" : "meet");
         }
       }, 350);
     }

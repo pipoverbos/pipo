@@ -1,11 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { esc, pick, shuffle } from "../../js/utils.js";
+import { cleanAlias, esc, pick, shuffle, validAlias } from "../../js/utils.js";
 
 describe("esc", () => {
   it("escapa los caracteres peligrosos para HTML", () => {
     expect(esc(`<img src="x" onerror='a&b'>`)).toBe("&lt;img src=&quot;x&quot; onerror='a&amp;b'&gt;");
   });
   it("convierte cualquier valor a texto", () => expect(esc(42)).toBe("42"));
+});
+
+describe("cleanAlias y validAlias", () => {
+  it("quita espacios de más", () => expect(cleanAlias("  Ana   María ")).toBe("Ana María"));
+  it("acepta apodos normales, con acentos y números", () => {
+    for (const ok of ["Yu", "Ana María", "Pipo_99", "Nico-7", "Ñandú", "x.y"]) expect(validAlias(ok), ok).toBe(true);
+  });
+  it("rechaza vacíos, de una letra, demasiado largos o con símbolos", () => {
+    for (const mal of ["", "A", " ", "<b>", "@@", "_pipo", "a".repeat(21), "hola!"])
+      expect(validAlias(mal), mal).toBe(false);
+  });
 });
 
 describe("shuffle", () => {
