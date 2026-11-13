@@ -63,11 +63,11 @@ function answer({ key, slot }, text) {
   }
 }
 
-/** Resuelve la partida en curso sin cometer errores, hasta que aparezca la ventana final. */
-export function solve() {
+/** Resuelve la partida en curso sin cometer errores, hasta que aparezca la ventana final (o tras `max` respuestas). */
+export function solve(max = Infinity) {
   for (let guard = 0; guard < 300; guard++) {
     const target = nextSlot();
-    if ($("#modal .modal") || !target) return;
+    if ($("#modal .modal") || !target || guard >= max) return;
     answer(target, target.row[target.f]);
   }
   throw new Error("solve: la partida no terminó");

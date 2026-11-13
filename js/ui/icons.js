@@ -1,9 +1,11 @@
 // Iconos SVG en línea: corazones, estrellas y el resto de iconos de la interfaz.
 
-export function heartSVG(lost) {
+/** `anim` opcional: "lose" (se vacía) o "gain" (se gana); es solo una clase para la animación CSS. */
+export function heartSVG(lost, anim) {
   return (
     '<svg viewBox="0 0 26 24" class="' +
     (lost ? "lost" : "") +
+    (anim ? " " + anim : "") +
     '" aria-hidden="true"><path d="M13 22C4 15 1.5 11.5 1.5 7.5A5.6 5.6 0 0 1 7 2c2.4 0 4.6 1.4 6 3.6C14.400 3.400 16.600 2 19 2a5.600 5.600 0 0 1 5.500 5.500C24.500 11.500 22 15 13 22z" fill="' +
     (lost ? "none" : "var(--heart)") +
     '" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/></svg>'

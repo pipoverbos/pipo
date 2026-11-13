@@ -3,7 +3,7 @@ import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
 import { R, setR } from "./state.js";
 import { BASE } from "./data/base-verbs.js";
-import { selV, selSet, score, reg, same, getStars, missMap, addMiss } from "./verbs.js";
+import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick } from "./verbs.js";
 import { LV } from "./data/config.js";
 import { snd } from "./audio.js";
 import { confetti } from "./confetti.js";
@@ -135,13 +135,21 @@ export function success(key, txt, row, f) {
   R.last = key;
   R.streak++;
   snd("ok");
-  var msg = "¡Bien! " + (f < 3 ? row[4] : row[0] + " significa " + row[3] + "."),
-    mood = "normal";
+  // El truco no debe regalar las casillas de la fila que aún faltan por rellenar.
+  var fi = +key.split("-")[0],
+    conocidas = [0, 1, 2].filter(function (c) {
+      return !R.hid[fi].has(c) || R.placed[fi + "-" + c] !== undefined;
+    }),
+    truco = f < 3 ? maskTrick(row, conocidas) : "",
+    msg = "¡Bien! " + (f < 3 ? truco : row[0] + " significa " + row[3] + "."),
+    mood = "normal",
+    anim = "";
   if (R.streak >= 10) {
     R.streak = 0;
     R.lives++;
+    anim = "gain";
     snd("life");
-    msg = "¡10 aciertos seguidos! Gano una vida. " + (f < 3 ? row[4] : "");
+    msg = "¡10 aciertos seguidos! Gano una vida. " + truco;
     mood = "cheer";
   }
   if (Object.keys(R.placed).length === R.total) {
@@ -149,7 +157,7 @@ export function success(key, txt, row, f) {
     return;
   }
   say(msg, mood);
-  renderHud();
+  renderHud(anim);
   renderPlay();
 }
 export function fail(row, msg, key) {
@@ -161,7 +169,7 @@ export function fail(row, msg, key) {
   if (R.lives <= 0) {
     R.dead = true;
     snd("die");
-    renderHud();
+    renderHud("lose");
     renderPlay();
     say("Me he quedado sin vidas en " + (R.idx >= 0 ? "el nivel " + (R.idx + 1) : "el repaso") + ".", "dead");
     showDead();
@@ -169,7 +177,7 @@ export function fail(row, msg, key) {
   }
   snd("bad");
   say(msg + " Pierdo una vida.", "hurt");
-  renderHud();
+  renderHud("lose");
   renderPlay();
   shakeSlot(key);
 }

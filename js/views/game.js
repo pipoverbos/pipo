@@ -19,10 +19,12 @@ export function gameView(v) {
   renderHud();
   renderPlay();
 }
-export function renderHud() {
+/** `anim`: "lose" anima el corazón que se acaba de vaciar; "gain", el que se acaba de ganar. */
+export function renderHud(anim) {
   var h = '<div class="hearts" role="img" aria-label="' + R.lives + (R.lives === 1 ? " vida" : " vidas") + '">',
-    slots = Math.max(5, R.lives);
-  for (var i = 0; i < slots; i++) h += heartSVG(i >= R.lives);
+    slots = Math.max(5, R.lives),
+    animado = anim === "lose" ? R.lives : anim === "gain" ? R.lives - 1 : -1;
+  for (var i = 0; i < slots; i++) h += heartSVG(i >= R.lives, i === animado ? anim : "");
   h +=
     '</div><div class="streak" role="img" aria-label="Racha: ' +
     R.streak +
@@ -35,7 +37,8 @@ var liveToggle = false;
 export function say(t, m) {
   var el = $("#talk");
   if (!el) return;
-  el.innerHTML = pipo(m || "normal") + '<div class="bubble pop"></div>';
+  // Tras un fallo (ánimo «hurt») el globo trae el consejo de Pipo y entra con su propia animación.
+  el.innerHTML = pipo(m || "normal") + '<div class="bubble ' + (m === "hurt" ? "tip" : "pop") + '"></div>';
   el.querySelector(".bubble").textContent = t;
   var live = $("#live");
   if (live) {
