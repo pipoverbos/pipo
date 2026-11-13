@@ -1,6 +1,6 @@
 # Pipo y los verbos irregulares
 
-[![CI](https://github.com/yuna-espejo/pipo/actions/workflows/ci.yml/badge.svg)](https://github.com/yuna-espejo/pipo/actions/workflows/ci.yml)
+[![CI](https://github.com/pipoverbos/pipo/actions/workflows/ci.yml/badge.svg)](https://github.com/pipoverbos/pipo/actions/workflows/ci.yml)
 
 Juego web educativo para aprender los verbos irregulares del inglés (infinitivo, past simple y past participle), pensado para alumnado de 1º de ESO. Se juega rellenando una tabla como la de un cuaderno, con una mascota (Pipo) que tiene vidas, da consejos y reacciona a los aciertos y errores.
 
@@ -25,7 +25,7 @@ Los datos del jugador se guardan solo en el navegador (`localStorage`, claves co
 
 - [x] Fuentes alojadas en `fonts/` con `@font-face` locales (sin Google Fonts).
 - [x] `index.html` en la raíz y `.nojekyll`.
-- [x] Repositorio en GitHub: https://github.com/yuna-espejo/pipo
+- [x] Repositorio en GitHub: https://github.com/pipoverbos/pipo
 - [x] `meta description` y etiquetas Open Graph, con `og-image.png`.
 - [x] CSS y JavaScript separados en `css/` y `js/`.
 
