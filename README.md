@@ -10,7 +10,7 @@ Proyecto personal de Yuna: también es una pieza de portfolio (yunaespejo.com) y
 
 HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por responsabilidad (ver «Estructura del repositorio»). Ya funciona:
 
-- Pantalla de carga y presentación de Pipo (3 pasos, con nombre opcional).
+- Pantalla de carga y presentación de Pipo (3 pasos). Para jugar hay que elegir un **apodo** (2 a 20 caracteres; se pide no usar el nombre real).
 - Elección de verbos: 80 verbos y 6 listas para elegir de golpe (Lista 1 a Lista 6, más Todos y Ninguno), marcar verbos sueltos y buscador. Las listas 1 y 2 son las del cuaderno original.
 - Tres dificultades (Fácil, Normal, Difícil) que cambian cuántos huecos hay y cuántas fichas trampa aparecen.
 - Mapa de 5 niveles que se desbloquean en orden y dan hasta 3 estrellas:
@@ -19,7 +19,7 @@ HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por 
 - Repaso de errores: guarda los verbos que más se fallan y ofrece una ronda con ellos.
 - Sonidos (se pueden silenciar), confeti, modo oscuro automático, diseño responsive (móvil y escritorio).
 
-Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): nombre, dificultad, verbos elegidos, estrellas, errores y sonido. No se envía nada a ningún servidor.
+Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): apodo (clave `name`), dificultad, verbos elegidos, estrellas, errores y sonido. No se envía nada a ningún servidor.
 
 ## Preparación para GitHub Pages (hecho)
 

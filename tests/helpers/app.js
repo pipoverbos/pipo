@@ -8,6 +8,8 @@ import { BASE } from "../../js/data/base-verbs.js";
 export async function boot({ seen = true, storage = {} } = {}) {
   localStorage.clear();
   localStorage.setItem("pipo2.seen", JSON.stringify(seen));
+  // Quien ya vio la presentación tiene apodo (sin él, el juego vuelve a pedirlo): se pone uno salvo que el test diga otro.
+  if (seen && !("name" in storage)) localStorage.setItem("pipo2.name", JSON.stringify("Pipa"));
   for (const [k, v] of Object.entries(storage)) localStorage.setItem("pipo2." + k, JSON.stringify(v));
   const html = fs.readFileSync(path.resolve(import.meta.dirname, "../../index.html"), "utf8");
   document.body.innerHTML = html.match(/<body>([\s\S]*)<\/body>/)[1].replace(/<script[\s\S]*?<\/script>/g, "");
