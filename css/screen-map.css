@@ -29,12 +29,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-family: "Caveat Brush", "Andika", cursive;
   font-size: 26px;
   background: var(--hc);
 }
 .lvl b {
-  font-family: "Caveat Brush", "Patrick Hand", cursive;
+  font-family: "Caveat Brush", "Andika", cursive;
   font-weight: 400;
   font-size: 24px;
   display: block;

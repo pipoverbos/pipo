@@ -121,7 +121,7 @@ El público es de 12-13 años. En España, el tratamiento de datos de menores de
 ## Diseño
 
 - **Concepto:** una página de cuaderno cuadriculado (margen rojo, agujeros de anillas) sobre una tapa verde azulada. Las columnas usan los colores de los subrayadores del cuaderno original: infinitivo en verde lima, past simple en azul, past participle en morado y significado en amarillo.
-- **Tipografías:** Caveat Brush para títulos y Patrick Hand para el resto.
+- **Tipografías:** Caveat Brush para títulos y Andika para el resto. Andika está diseñada para aprender a leer: distingue bien la `I`, la `l` y el `1`, y su `a` y su `g` son las de la escritura escolar, así que encaja con el cuaderno. Se eligió comparando seis candidatas (Patrick Hand, Andika, Lexend, Atkinson Hyperlegible Next, Nunito y Comic Neue) sobre texto real del juego. Tiene negrita real, que Patrick Hand no tenía.
 - **Mascota:** Pipo, un SVG en línea con varios estados de ánimo (normal, feliz, pensativo, dolido, eufórico y "muerto").
 - **Sin emojis en la interfaz**, solo iconos SVG.
 - **Accesibilidad:** foco visible, objetivos táctiles de al menos 44 px y respeto a `prefers-reduced-motion`. Se puede jugar entero con el teclado: las casillas de la tabla son botones con nombre, el foco va al título al cambiar de pantalla y se conserva al repintar, y la ventana de resultado recibe el foco, deja el resto inerte y se cierra con Escape. Los mensajes de Pipo se anuncian por una región `aria-live` fija. Cada pantalla tiene un único `<h1>`.
@@ -149,7 +149,7 @@ Lighthouse solo evalúa la pantalla de carga: por eso la auditoría completa se 
 ├── index.html           # solo estructura: enlaza css/ y js/main.js
 ├── og-image.png         # imagen al compartir el enlace
 ├── .nojekyll
-├── fonts/               # Caveat Brush y Patrick Hand (+ licencias OFL)
+├── fonts/               # Caveat Brush y Andika (+ licencias OFL)
 ├── css/                 # estilos, en el orden en que se cargan
 │   ├── fonts.css        # @font-face
 │   ├── tokens.css       # variables de color y modo oscuro
@@ -193,4 +193,4 @@ Los 80 verbos están en `js/data/base-verbs.js`, y las listas 1 a 6 se definen e
 
 - **Código**: [MIT](LICENSE), © 2026 Yuna Espejo.
 - **Pipo y la imagen de portada** (el dibujo SVG de la mascota en `js/ui/pipo.js` y `og-image.png`): todos los derechos reservados. Puedes verlos y jugar, pero no reutilizarlos ni redistribuirlos sin permiso.
-- **Tipografías** (Caveat Brush y Patrick Hand): [SIL Open Font License 1.1](fonts/), con sus licencias en `fonts/`.
+- **Tipografías** (Caveat Brush y Andika): [SIL Open Font License 1.1](fonts/), con sus licencias en `fonts/`.
