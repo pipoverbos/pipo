@@ -1,6 +1,16 @@
-// Configuración del juego: dificultades, niveles y consejos de la pantalla de carga.
+// Configuración del juego: dificultades, niveles, listas de verbos y consejos de la pantalla de carga.
 
 export const MIN = 10;
+// Grupos de verbos que se pueden elegir de golpe en «Mis verbos». Cada lista va del infinitivo `from` al `to`,
+// según el orden de BASE. Las listas 1 y 2 son las del cuaderno original.
+export const LISTS = [
+  { id: "l1", name: "Lista 1", from: "be", to: "eat" },
+  { id: "l2", name: "Lista 2", from: "fall", to: "leave" },
+  { id: "l3", name: "Lista 3", from: "bite", to: "learn" },
+  { id: "l4", name: "Lista 4", from: "lend", to: "say" },
+  { id: "l5", name: "Lista 5", from: "see", to: "stand" },
+  { id: "l6", name: "Lista 6", from: "steal", to: "write" },
+];
 export const DIFFS = { easy: "Fácil", normal: "Normal", hard: "Difícil" };
 export const DIFFD = {
   easy: "Pocos huecos y pocas trampas. Ideal para empezar.",

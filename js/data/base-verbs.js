@@ -1,5 +1,6 @@
-// Los 30 verbos base: [infinitivo, past simple, past participle, significado (catalán), truco, pista].
-// Los significados vienen tal cual del cuaderno original.
+// Los 80 verbos del juego: [infinitivo, past simple, past participle, significado (catalán), truco, pista].
+// Los 30 primeros (be–leave) vienen del cuaderno original, con sus significados tal cual.
+// Los 50 siguientes (bite–write) se añadieron después, en orden alfabético: pendientes de revisar con el profesorado.
 
 // prettier-ignore
 export const BASE=[
@@ -32,5 +33,55 @@ export const BASE=[
 ["hear","heard","heard","escoltar","Hear, heard, heard: las dos formas son iguales, con una d al final.","Las dos formas son iguales: infinitivo con d al final."],
 ["keep","kept","kept","mantenir","Keep, kept, kept: la ee se acorta a e y se añade t.","Las dos formas son iguales y acaban en -pt."],
 ["know","knew","known","saber","Know, knew, known. Knew rima con new; known acaba en -n.","El pasado rima con new; el participio acaba en -n."],
-["leave","left","left","abandonar un lloc","Leave, left, left: las dos formas son iguales.","Las dos formas son iguales y empiezan por le-."]
+["leave","left","left","abandonar un lloc","Leave, left, left: las dos formas son iguales.","Las dos formas son iguales y empiezan por le-."],
+["bite","bit","bitten","mossegar","Bite, bit, bitten. Como hide, hid, hidden: el participio acaba en -en.","El pasado es corto; el participio acaba en -en."],
+["blow","blew","blown","bufar","Blow, blew, blown. Mismo patrón que know, knew, known.","El pasado rima con new; el participio acaba en -n."],
+["burn","burnt / burned","burnt / burned","cremar","Burn tiene dos formas válidas, en pasado y en participio: burnt o burned.","Las dos formas valen: una acaba en -t y otra en -ed."],
+["catch","caught","caught","atrapar","Catch, caught, caught: las dos formas son iguales y llevan -aught.","Las dos formas son iguales y llevan -aught."],
+["cost","cost","cost","costar","Cost, cost, cost: las tres formas son iguales, como cut.","¡No cambia nada!"],
+["dream","dreamt / dreamed","dreamt / dreamed","somiar","Dream tiene dos formas válidas, en pasado y en participio: dreamt o dreamed.","Las dos formas valen: una acaba en -t y otra en -ed."],
+["grow","grew","grown","créixer","Grow, grew, grown. Mismo patrón que know, knew, known.","El pasado rima con new; el participio acaba en -n."],
+["hide","hid","hidden","amagar","Hide, hid, hidden. Como bite, bit, bitten.","El pasado pierde la e; el participio acaba en -den."],
+["hit","hit","hit","pegar","Hit, hit, hit: las tres formas son iguales.","¡No cambia nada!"],
+["hold","held","held","sostenir","Hold, held, held: la o pasa a e y las dos formas son iguales.","Las dos formas son iguales y llevan una e."],
+["hurt","hurt","hurt","fer mal","Hurt, hurt, hurt: las tres formas son iguales.","¡No cambia nada!"],
+["lead","led","led","guiar","Lead, led, led: las dos formas son iguales y pierden la a.","Las dos formas son iguales y más cortas que el infinitivo."],
+["learn","learnt / learned","learnt / learned","aprendre","Learn tiene dos formas válidas, en pasado y en participio: learnt o learned.","Las dos formas valen: una acaba en -t y otra en -ed."],
+["lend","lent","lent","deixar (prestar)","Lend, lent, lent: la d final pasa a t, como send y spend.","Las dos formas son iguales y acaban en -nt."],
+["let","let","let","permetre","Let, let, let: las tres formas son iguales.","¡No cambia nada!"],
+["lose","lost","lost","perdre","Lose, lost, lost: las dos formas son iguales y acaban en -st.","Las dos formas son iguales y acaban en -st."],
+["make","made","made","fabricar","Make, made, made: la k desaparece y las dos formas son iguales.","Las dos formas son iguales y no llevan k."],
+["mean","meant","meant","voler dir","Mean, meant, meant: las dos formas son iguales, con una t al final.","Las dos formas son iguales y acaban en -nt."],
+["meet","met","met","conèixer","Meet, met, met: la ee se acorta a e y las dos formas son iguales.","Las dos formas son iguales y muy cortas."],
+["pay","paid","paid","pagar","Pay, paid, paid: la y pasa a i y las dos formas son iguales.","Las dos formas son iguales: la y se cambia por i."],
+["put","put","put","posar","Put, put, put: las tres formas son iguales.","¡No cambia nada!"],
+["read","read","read","llegir","Read, read, read: se escriben igual, pero el pasado y el participio se pronuncian /red/.","Se escriben igual que el infinitivo."],
+["ride","rode","ridden","muntar (bici, cavall)","Ride, rode, ridden. Como drive, drove, driven.","El pasado lleva una o; el participio acaba en -den."],
+["ring","rang","rung","sonar","Ring, rang, rung: patrón i, a, u, como begin y drink.","Piensa en el patrón i, a, u."],
+["run","ran","run","córrer","Run, ran, run: el participio es igual que el infinitivo, como come.","El pasado cambia la u por a; el participio es como el infinitivo."],
+["say","said","said","dir","Say, said, said: las dos formas son iguales. Said se pronuncia sed.","Las dos formas son iguales y llevan -aid."],
+["see","saw","seen","veure","See, saw, seen. El participio acaba en -n.","El pasado empieza por sa-; el participio acaba en -n."],
+["sell","sold","sold","vendre","Sell, sold, sold: las dos formas son iguales, como tell, told, told.","Las dos formas son iguales y llevan -old."],
+["send","sent","sent","enviar","Send, sent, sent: la d final pasa a t, como lend y spend.","Las dos formas son iguales y acaban en -nt."],
+["shake","shook","shaken","sacsejar","Shake, shook, shaken. El participio acaba en -en.","El pasado rima con book; el participio acaba en -en."],
+["show","showed","shown","mostrar","Show, showed, shown: el pasado es regular y el participio acaba en -n.","El pasado acaba en -ed; el participio, en -n."],
+["shut","shut","shut","tancar","Shut, shut, shut: las tres formas son iguales.","¡No cambia nada!"],
+["sing","sang","sung","cantar","Sing, sang, sung: patrón i, a, u, como begin y drink.","Piensa en el patrón i, a, u."],
+["sit","sat","sat","seure","Sit, sat, sat: la i pasa a a y las dos formas son iguales.","Las dos formas son iguales y llevan una a."],
+["sleep","slept","slept","dormir","Sleep, slept, slept: la ee se acorta a e y se añade t, como keep.","Las dos formas son iguales y acaban en -pt."],
+["speak","spoke","spoken","parlar","Speak, spoke, spoken. El participio acaba en -en.","El pasado lleva una o; el participio acaba en -en."],
+["spend","spent","spent","gastar","Spend, spent, spent: la d final pasa a t, como send y lend.","Las dos formas son iguales y acaban en -nt."],
+["stand","stood","stood","estar dret","Stand, stood, stood: las dos formas son iguales. Stood rima con good.","Las dos formas son iguales y llevan -oo-."],
+["steal","stole","stolen","robar","Steal, stole, stolen. El participio acaba en -en.","El pasado acaba en -e; el participio acaba en -en."],
+["swim","swam","swum","nadar","Swim, swam, swum: patrón i, a, u, como begin y drink.","Piensa en el patrón i, a, u."],
+["take","took","taken","agafar","Take, took, taken. El pasado rima con book.","El pasado lleva oo; el participio acaba en -en."],
+["teach","taught","taught","ensenyar","Teach, taught, taught: las dos formas son iguales y llevan -aught.","Las dos formas son iguales y llevan -aught."],
+["tell","told","told","explicar","Tell, told, told: las dos formas son iguales, como sell, sold, sold.","Las dos formas son iguales y llevan -old."],
+["think","thought","thought","pensar","Think, thought, thought: las dos formas son iguales y llevan -ought.","Las dos formas son iguales y llevan -ought."],
+["throw","threw","thrown","llançar","Throw, threw, thrown. Mismo patrón que know, knew, known.","El pasado rima con new; el participio acaba en -n."],
+["understand","understood","understood","entendre","Understand, understood, understood: igual que stand, stood, stood.","Las dos formas son iguales, como en stand."],
+["wake","woke","woken","despertar","Wake, woke, woken. El participio acaba en -en.","El pasado lleva una o; el participio acaba en -en."],
+["wear","wore","worn","portar (roba)","Wear, wore, worn. El participio acaba en -n.","El pasado acaba en -ore; el participio acaba en -n."],
+["win","won","won","guanyar","Win, won, won: las dos formas son iguales y riman con one.","Las dos formas son iguales y riman con one."],
+["write","wrote","written","escriure","Write, wrote, written. El participio duplica la t y acaba en -en.","El pasado lleva una o; el participio duplica la t."]
 ];

@@ -39,7 +39,7 @@ export function meetView(v) {
       "<h2>Tú decides" +
       (name ? ", " + esc(name) : "") +
       "</h2>" +
-      '<div class="card mt" style="text-align:left"><p><b>Tus verbos:</b> elige cuáles quieres practicar y añade los que te manden en clase.</p>' +
+      '<div class="card mt" style="text-align:left"><p><b>Tus verbos:</b> elige cuáles quieres practicar, por listas o uno a uno.</p>' +
       '<p class="mt"><b>La dificultad:</b> más huecos en blanco cuanto más difícil.</p>' +
       '<p class="mt"><b>5 niveles</b> con verbos distintos. ¡Gana estrellas en cada uno!</p></div>';
   }

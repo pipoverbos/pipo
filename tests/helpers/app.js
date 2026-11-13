@@ -38,7 +38,9 @@ const rowOf = (tr) => {
   const visible = [...tr.children]
     .map((td, f) => [f, td.classList.contains("slot") ? null : td.textContent.trim()])
     .filter(([, text]) => text !== null);
-  return BASE.find((v) => visible.every(([f, text]) => v[f] === text));
+  const matches = BASE.filter((v) => visible.every(([f, text]) => v[f] === text));
+  if (matches.length !== 1) throw new Error(`rowOf: ${matches.length} verbos encajan con ${JSON.stringify(visible)}`);
+  return matches[0];
 };
 const nextSlot = () => {
   const slot = $("td[data-slot]");

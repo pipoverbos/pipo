@@ -1,13 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { BASE } from "../../js/data/base-verbs.js";
+import { LISTS } from "../../js/data/config.js";
 import { $, $$, act, boot, stored, type } from "../helpers/app.js";
-
-const fill = (inf, past, pp, mean) => {
-  type("#a-inf", inf);
-  type("#a-past", past);
-  type("#a-pp", pp);
-  type("#a-mean", mean);
-  act("addverb");
-};
 
 describe("mis verbos", () => {
   beforeAll(async () => {
@@ -15,9 +9,23 @@ describe("mis verbos", () => {
     act("verbs");
   });
 
-  it("muestra los 30 verbos, todos elegidos", () => {
-    expect($$(".vrow")).toHaveLength(30);
-    expect($("#vcount").textContent).toContain("30 verbos elegidos");
+  it("muestra todos los verbos, todos elegidos", () => {
+    expect($$(".vrow")).toHaveLength(BASE.length);
+    expect($("#vcount").textContent).toContain(`${BASE.length} verbos elegidos`);
+  });
+
+  it("ya no se pueden añadir ni borrar verbos propios", () => {
+    expect($("#addbox")).toBeNull();
+    expect($('[data-act="addverb"]')).toBeNull();
+    expect($('[data-act="del"]')).toBeNull();
+  });
+
+  it("ofrece Todos, Ninguno y una lista por cada grupo", () => {
+    const labels = $$(".chiprow .pill").map((p) => p.textContent);
+    expect(labels).toHaveLength(2 + LISTS.length);
+    expect(labels[2]).toBe("Lista 1 (be–eat)");
+    expect(labels[3]).toBe("Lista 2 (fall–leave)");
+    expect(labels.at(-1)).toBe("Lista 6 (steal–write)");
   });
 
   it("el buscador filtra por verbo y por significado", () => {
@@ -33,39 +41,37 @@ describe("mis verbos", () => {
   it("'Ninguno' deja la lista vacía y avisa de que hacen falta 10", () => {
     act("pre", '[data-p="none"]');
     expect($("#vcount").textContent).toContain("necesitas al menos 10");
+    expect($$(".vrow.on")).toHaveLength(0);
+  });
+
+  it("cada lista elige exactamente sus verbos", () => {
+    for (const list of LISTS) {
+      act("pre", `[data-p="${list.id}"]`);
+      const chosen = $$(".vrow.on").map((r) => r.dataset.inf);
+      expect(chosen[0], list.id).toBe(list.from);
+      expect(chosen.at(-1), list.id).toBe(list.to);
+      expect(stored("sel"), list.id).toEqual(chosen);
+    }
+  });
+
+  it("elegir una lista reemplaza la selección anterior", () => {
+    act("pre", '[data-p="l1"]');
+    expect($$(".vrow.on")).toHaveLength(15);
+    act("pre", '[data-p="l2"]');
+    expect($$(".vrow.on")).toHaveLength(15);
+    expect($('.vrow[data-inf="be"]').classList.contains("on")).toBe(false);
+  });
+
+  it("se puede marcar y desmarcar un verbo suelto", () => {
+    act("tv", '[data-inf="be"]');
+    expect($('.vrow[data-inf="be"]').classList.contains("on")).toBe(true);
+    expect($("#vcount").textContent).toContain("16 verbos elegidos");
+    act("tv", '[data-inf="be"]');
+    expect($("#vcount").textContent).toContain("15 verbos elegidos");
+  });
+
+  it("'Todos' vuelve a elegirlos todos", () => {
     act("pre", '[data-p="all"]');
-    expect($("#vcount").textContent).toContain("30 verbos elegidos");
-  });
-
-  it("rechaza un verbo con campos vacíos", () => {
-    fill("swim", "", "", "");
-    expect($("#amsg").textContent).toContain("Rellena");
-  });
-
-  it("rechaza un verbo que no está escrito en inglés con letras", () => {
-    fill("sw1m", "swam", "swum", "nadar");
-    expect($("#amsg").textContent).toContain("solo con letras");
-  });
-
-  it("añade un verbo propio, lo elige y lo guarda", () => {
-    fill("Swim", "swam", "swum", "nadar");
-    expect($("#amsg").textContent).toContain("swim añadido");
-    expect($("#vcount").textContent).toContain("31 verbos elegidos");
-    expect(stored("custom").map((v) => v[0])).toEqual(["swim"]);
-    expect($(".tag").textContent).toBe("tuyo");
-  });
-
-  it("no permite repetir un verbo", () => {
-    fill("swim", "swam", "swum", "nadar");
-    expect($("#amsg").textContent).toContain("ya está en tu lista");
-  });
-
-  it("borrar un verbo propio pide confirmación", () => {
-    act("del", '[data-inf="swim"]');
-    expect($('[data-act="del"]').textContent).toContain("¿Seguro?");
-    expect(stored("custom")).toHaveLength(1);
-    act("del", '[data-inf="swim"]');
-    expect(stored("custom")).toHaveLength(0);
-    expect($("#vcount").textContent).toContain("30 verbos elegidos");
+    expect($("#vcount").textContent).toContain(`${BASE.length} verbos elegidos`);
   });
 });
