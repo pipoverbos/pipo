@@ -27,6 +27,46 @@ describe("reg (forma regular falsa para las fichas trampa)", () => {
   it("usa solo la primera forma si hay dos", () => expect(v.reg("was / were")).toBe("wased"));
 });
 
+describe("maskTrick (el truco no regala las casillas que faltan)", () => {
+  const byInf = (inf) => BASE.find((r) => r[0] === inf);
+
+  it("tapa las formas que aún no se ven en la fila", () => {
+    // solo se ve el infinitivo
+    expect(v.maskTrick(byInf("break"), [0])).toBe("Break, ___, ___. El participio acaba en -en.");
+  });
+  it("deja visible lo que ya está colocado", () => {
+    expect(v.maskTrick(byInf("break"), [0, 1])).toBe("Break, broke, ___. El participio acaba en -en.");
+  });
+  it("sin nada visible tapa también el infinitivo", () => {
+    expect(v.maskTrick(byInf("break"), [])).toBe("___, ___, ___. El participio acaba en -en.");
+  });
+  it("con la fila completa devuelve el truco tal cual", () => {
+    for (const r of BASE) expect(v.maskTrick(r, [0, 1, 2])).toBe(r[4]);
+  });
+  it("tapa las dos formas de was / were", () => {
+    expect(v.maskTrick(byInf("be"), [0])).toBe("___ va con I, he, she, it. ___ va con you, we, they.");
+  });
+  it("no tapa una forma que ya está a la vista en otra columna (cut, cut, cut)", () => {
+    expect(v.maskTrick(byInf("cut"), [0])).toBe(byInf("cut")[4]);
+  });
+  it("no toca fragmentos como -ought ni palabras que solo contienen la forma", () => {
+    expect(v.maskTrick(byInf("buy"), [0])).toBe("Buy hace ___, y bring hace brought. Las dos llevan -ought.");
+  });
+  it("con solo el infinitivo a la vista ningún truco contiene las otras formas", () => {
+    for (const r of BASE) {
+      const visto = new Set(r[0].split("/").map((s) => s.trim().toLowerCase()));
+      const texto = v.maskTrick(r, [0]).toLowerCase();
+      for (const forma of [r[1], r[2]].flatMap((s) => s.split("/").map((x) => x.trim().toLowerCase()))) {
+        if (visto.has(forma)) continue;
+        expect(
+          texto.match(new RegExp("(?<![\\p{L}-])" + forma + "(?![\\p{L}])", "u")),
+          `${r[0]}: «${forma}»`
+        ).toBeNull();
+      }
+    }
+  });
+});
+
 describe("norm y same (comparar respuestas)", () => {
   it("ignora mayúsculas y espacios de más", () => expect(v.norm("  Was  /  Were ")).toBe("was/were"));
   it("unifica el apóstrofo tipográfico", () => expect(v.norm("it’s")).toBe("it's"));

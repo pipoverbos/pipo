@@ -14,6 +14,32 @@ export function listInfs(list) {
     return v[0];
   });
 }
+function formas(txt) {
+  return txt
+    .split("/")
+    .map(function (s) {
+      return s.trim().toLowerCase();
+    })
+    .filter(Boolean);
+}
+/**
+ * Truco de un verbo sin regalar lo que aún no se ha rellenado: las formas de las columnas que
+ * todavía no se ven en esa fila (`conocidas` = índices 0-2 visibles o ya colocadas) se tapan con «___».
+ * Una forma que coincide con otra ya visible (cut, cut, cut) no se tapa, porque ya está a la vista.
+ */
+export function maskTrick(row, conocidas) {
+  var vistas = new Set(),
+    tapadas = new Set(),
+    texto = row[4];
+  for (var c = 0; c < 3; c++)
+    formas(row[c]).forEach(function (w) {
+      (conocidas.indexOf(c) >= 0 ? vistas : tapadas).add(w);
+    });
+  tapadas.forEach(function (w) {
+    if (!vistas.has(w)) texto = texto.replace(new RegExp("(?<![\\p{L}-])" + w + "(?![\\p{L}])", "giu"), "___");
+  });
+  return texto;
+}
 export function selSet() {
   var s = store.get("sel", null);
   if (!s)

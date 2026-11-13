@@ -163,7 +163,10 @@
   .pipo .eyes,
   .hl.draw,
   .shake,
-  .pop {
+  .pop,
+  .bubble.tip,
+  .hearts svg,
+  .hearts path {
     animation: none !important;
   }
   .bar i {
