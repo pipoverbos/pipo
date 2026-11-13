@@ -21,6 +21,8 @@ HTML, CSS y JavaScript sin dependencias ni paso de compilación, repartidos por 
 
 Los datos del jugador se guardan solo en el navegador (`localStorage`, claves con prefijo `pipo2.`): apodo (clave `name`), dificultad, verbos elegidos, estrellas, errores y sonido. No se envía nada a ningún servidor.
 
+Lo guardado se trata como no fiable: `js/store.js` valida cada clave al leerla (un dato roto, de otra época o manipulado se descarta y se usa el valor por defecto) y guarda la versión del formato en la clave `v`. Si algún día cambia el formato de un dato, se sube `VERSION` y se añade la migración correspondiente en `MIGRATIONS`.
+
 ## Preparación para GitHub Pages (hecho)
 
 - [x] Fuentes alojadas en `fonts/` con `@font-face` locales (sin Google Fonts).
@@ -170,7 +172,7 @@ Lighthouse solo evalúa la pantalla de carga: por eso la auditoría completa se 
     ├── main.js          # punto de entrada
     ├── router.js        # go() y render(); cada pantalla se registra
     ├── state.js         # estado compartido (S: interfaz, R: partida)
-    ├── store.js         # localStorage (prefijo pipo2.)
+    ├── store.js         # localStorage (prefijo pipo2.), validado y versionado
     ├── events.js        # clics, teclado y arrastrar y soltar
     ├── game.js          # reglas: niveles, vidas, aciertos, fin de partida
     ├── verbs.js         # verbos elegidos, comparación, estrellas, errores
