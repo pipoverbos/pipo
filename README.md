@@ -45,7 +45,7 @@ o `python -m http.server 8000` y abrir http://localhost:8000. En GitHub Pages fu
 
 ## Desarrollo
 
-El juego no tiene dependencias en producción. `package.json` solo trae herramientas de desarrollo (ESLint, Prettier, Vitest y jsdom). Hace falta Node 22 o superior.
+El juego no tiene dependencias en producción. `package.json` solo trae herramientas de desarrollo (ESLint, Prettier, Vitest, jsdom, axe-core y PGlite). Hace falta Node 22 o superior.
 
 ```
 npm install        # una vez
@@ -59,6 +59,8 @@ Los tests están en `tests/`:
 
 - `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas), integridad de los datos de verbos, niveles y listas, y **contraste de los colores** de `css/tokens.css` (WCAG AA, claro y oscuro).
 - `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas. Incluyen **accesibilidad**: axe-core sobre todas las pantallas, foco al cambiar de pantalla, juego con teclado y ventana modal.
+
+- `db/`: aplican la migración de `supabase/` sobre PostgreSQL real (PGlite, en memoria) y llaman a las funciones con el rol anónimo, como haría el navegador: tablas cerradas, validación de entradas, puntos calculados por el servidor, ranking y borrado de datos.
 
 La integración continua (`.github/workflows/ci.yml`) ejecuta todo esto en cada push a `main` y en cada pull request.
 
@@ -78,16 +80,21 @@ Decisiones ya tomadas:
 
 - **Sin email ni nombre real.** El profesor crea una clase y obtiene un código; cada alumno entra con ese código y un **apodo**. El ranking solo muestra apodos.
 - **Sin cuentas obligatorias.** Se puede seguir jugando sin clase, como ahora.
-- **Backend como servicio** (Supabase o Firebase), porque GitHub Pages solo sirve archivos estáticos. Pendiente de elegir.
-- **Puntuación calculada en el servidor** (o validada allí), para que el ranking no se pueda falsear desde el navegador.
+- **Backend como servicio: Supabase** (PostgreSQL, región de la UE), porque GitHub Pages solo sirve archivos estáticos. El juego hablará con él con `fetch`, sin añadir librerías.
+- **Puntuación calculada en el servidor**, que además rechaza partidas imposibles y limita la frecuencia de envíos. Un juego en el navegador no se puede blindar del todo; para un ranking de clase es suficiente.
+- **Identificación sin cuentas:** el alumno recibe un secreto aleatorio que solo guarda su navegador (en la base de datos, solo su hash); quien crea la clase recibe una clave de profesor igual.
 
-Modelo de datos orientativo:
+Progreso:
 
-- `classes`: id, código, nombre, creada_en, id_profesor
-- `players`: id, id_clase, apodo, creado_en
-- `runs`: id, id_jugador, nivel, dificultad, aciertos, errores, estrellas, fecha
+- [x] Esquema de base de datos y funciones en [`supabase/migrations/`](supabase/migrations/0001_clases_y_ranking.sql), con tests sobre PostgreSQL real (`tests/db/`).
+- [x] Borrador de [política de privacidad](docs/politica-privacidad-BORRADOR.md) (**sin publicar**: falta revisión experta y decidir la base legal y el consentimiento).
+- [ ] Crear el proyecto en Supabase y aplicar la migración; programar la limpieza por inactividad (`pg_cron`).
+- [ ] Módulo de conexión con `fetch`, pantallas de unirse a una clase y de ranking, y envío de partidas.
+- [ ] Opción en el juego para salir de la clase y borrar los datos propios.
 
-Fórmula de puntos: por decidir (propuesta: puntos por acierto, bonus por racha y por estrellas, sin penalizar de más los errores).
+Modelo de datos: `classes` (código, nombre, hash de la clave del profesor), `players` (clase, apodo único por clase, hash del secreto) y `runs` (jugador, nivel, dificultad, aciertos, errores, estrellas, puntos, fecha). Las tablas están cerradas: el navegador solo llama a siete funciones (`create_class`, `join_class`, `submit_run`, `class_ranking`, `leave_class`, `teacher_remove_player`, `teacher_delete_class`).
+
+Fórmula de puntos (**provisional**, se puede cambiar): `aciertos × (10 + extra de dificultad) + estrellas × 50`, con extra 0 / 2 / 5 en fácil / normal / difícil. En el ranking cuenta solo la mejor partida de cada nivel y dificultad, para que repetir un nivel no acumule puntos.
 
 ### Fase 3 · Panel del profesor
 
