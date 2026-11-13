@@ -142,6 +142,16 @@ export function initEvents() {
       e.preventDefault();
       check();
     }
+    // Las casillas de la tabla son role="button" sobre una celda: no responden solas a Enter ni a Espacio.
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("td[data-slot]")) {
+      e.preventDefault();
+      e.target.click();
+    }
+    // Escape en una ventana de resultado: la salida segura es volver al mapa o al inicio.
+    if (e.key === "Escape") {
+      var out = $('#modal [data-act="map"], #modal [data-act="home"]');
+      if (out) out.click();
+    }
   });
   document.addEventListener("dragstart", function (e) {
     var c = e.target.closest && e.target.closest("[data-chip]");

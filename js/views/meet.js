@@ -12,7 +12,7 @@ export function meetView(v) {
   if (n === 0) {
     h +=
       pipo("cheer") +
-      "<h2>¡Hola! Soy Pipo</h2>" +
+      "<h1>¡Hola! Soy Pipo</h1>" +
       '<p class="mt">Quiero ser el mejor estudiante de inglés del cole, pero los verbos irregulares me dan guerra. ¿Me ayudas a aprenderlos?</p>' +
       '<div class="card mt" style="text-align:left"><label for="nm" class="muted" style="font-size:16px">¿Cómo te llamas? (opcional)</label>' +
       '<input class="field" id="nm" maxlength="20" autocomplete="off" placeholder="Tu nombre" value="' +
@@ -22,7 +22,7 @@ export function meetView(v) {
   } else if (n === 1) {
     h +=
       pipo("think") +
-      "<h2>Así se juega</h2>" +
+      "<h1>Así se juega</h1>" +
       '<div class="card mt" style="text-align:left"><p>La tabla tiene cuatro columnas, como en un cuaderno:</p>' +
       '<div class="legend"><span class="h0" style="background:var(--h0)">Infinitive</span><span style="background:var(--h1)">Past simple</span><span style="background:var(--h2)">Past participle</span><span style="background:var(--h3)">Significado</span></div>' +
       "<p>Toca una ficha y luego la casilla vacía donde encaja.</p></div>" +
@@ -36,9 +36,9 @@ export function meetView(v) {
   } else {
     h +=
       pipo("happy") +
-      "<h2>Tú decides" +
+      "<h1>Tú decides" +
       (name ? ", " + esc(name) : "") +
-      "</h2>" +
+      "</h1>" +
       '<div class="card mt" style="text-align:left"><p><b>Tus verbos:</b> elige cuáles quieres practicar, por listas o uno a uno.</p>' +
       '<p class="mt"><b>La dificultad:</b> más huecos en blanco cuanto más difícil.</p>' +
       '<p class="mt"><b>5 niveles</b> con verbos distintos. ¡Gana estrellas en cada uno!</p></div>';

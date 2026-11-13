@@ -6,7 +6,7 @@
   gap: 10px;
   margin-bottom: 12px;
 }
-.top h2 {
+.top h1 {
   font-size: 34px;
   flex: 1;
 }
@@ -19,7 +19,7 @@
   margin: 10px 0;
 }
 .pill {
-  min-height: 40px;
+  min-height: 44px;
   padding: 4px 14px;
   border: 2px solid var(--ink);
   border-radius: 999px;

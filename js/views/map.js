@@ -23,7 +23,7 @@ export function mapView(v) {
   var h =
     '<section><div class="top"><button class="iconbtn" data-act="home" aria-label="Volver">' +
     ICON.back +
-    "</button><h2>Elige un nivel</h2></div>" +
+    "</button><h1>Elige un nivel</h1></div>" +
     '<p class="muted">Dificultad: <b>' +
     DIFFS[d] +
     '</b>. Supera un nivel para abrir el siguiente.</p><div class="lgrid">';

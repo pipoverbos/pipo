@@ -5,6 +5,7 @@ import { selSet, selV } from "../verbs.js";
 import { BASE } from "../data/base-verbs.js";
 import { MIN, LISTS } from "../data/config.js";
 import { ICON } from "../ui/icons.js";
+import { focusSignature, restoreFocus } from "../ui/focus.js";
 
 export function verbsView(v) {
   const pill = (p, text) => `<button class="pill" data-act="pre" data-p="${p}">${text}</button>`;
@@ -15,7 +16,7 @@ export function verbsView(v) {
   v.innerHTML =
     '<section><div class="top"><button class="iconbtn" data-act="home" aria-label="Volver">' +
     ICON.back +
-    "</button><h2>Mis verbos</h2></div>" +
+    "</button><h1>Mis verbos</h1></div>" +
     '<p><b id="vcount"></b></p>' +
     `<div class="chiprow">${pills}</div>` +
     '<input class="field mt" id="vq" type="search" placeholder="Buscar un verbo" autocomplete="off" value="' +
@@ -26,6 +27,7 @@ export function verbsView(v) {
 }
 
 export function refreshVerbs() {
+  const sig = focusSignature($("#view"));
   const q = S.vq.toLowerCase().trim();
   const sel = selSet();
   const list = BASE.filter((v) => !q || v[0].indexOf(q) > -1 || v[3].toLowerCase().indexOf(q) > -1);
@@ -37,8 +39,6 @@ export function refreshVerbs() {
         (on ? " on" : "") +
         '" data-act="tv" data-inf="' +
         esc(v[0]) +
-        '" aria-pressed="' +
-        on +
         '" role="checkbox" aria-checked="' +
         on +
         '"><span class="chk">' +
@@ -56,6 +56,7 @@ export function refreshVerbs() {
     })
     .join("");
   $("#vlist").innerHTML = html || '<p class="muted mt">No hay ningún verbo con ese nombre.</p>';
+  restoreFocus(sig, $("#view"));
   const n = selV().length;
   $("#vcount").textContent =
     n +
