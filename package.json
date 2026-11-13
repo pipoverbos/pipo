@@ -13,6 +13,7 @@
     "check": "npm run lint && npm run format:check && npm test"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@eslint/js": "^10.0.1",
     "axe-core": "^4.14.0",
     "eslint": "^10.14.0",
