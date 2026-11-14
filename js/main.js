@@ -8,7 +8,8 @@ import { homeView } from "./views/home.js";
 import { verbsView } from "./views/verbs.js";
 import { mapView } from "./views/map.js";
 import { gameView } from "./views/game.js";
-import { joinView, rankView, teacherView } from "./views/classes.js";
+import { roleView } from "./views/role.js";
+import { joinView, rankView, challengeView, challengeDoneView } from "./views/classes.js";
 
 store.init(); // antes de pintar nada: lleva los datos guardados a la versión actual
 
@@ -20,7 +21,9 @@ registerView("map", mapView);
 registerView("game", gameView);
 registerView("join", joinView);
 registerView("rank", rankView);
-registerView("teacher", teacherView);
+registerView("role", roleView);
+registerView("challenge", challengeView);
+registerView("challengedone", challengeDoneView);
 
 initEvents();
 render();

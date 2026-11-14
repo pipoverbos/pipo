@@ -1,8 +1,7 @@
-// Lógica de las clases: unirse, ranking, salir, funciones de quien creó la clase y envío de partidas.
+// Lógica de las clases: unirse, ranking, salir, retos entre amigos y envío de partidas.
 // Las pantallas están en views/classes.js. Todo lo que habla con el servidor pasa por online.js, y un fallo
 // nunca rompe el juego: se enseña el mensaje y se puede seguir jugando.
 import { $, esc } from "./utils.js";
-import { store } from "./store.js";
 import { S } from "./state.js";
 import { online } from "./online.js";
 import { go, render } from "./router.js";
@@ -104,61 +103,78 @@ export async function leaveDo() {
   go("home");
 }
 
-// ---- quien creó la clase ----
-export async function teacherCreate() {
-  const f = $("#tn");
-  setErr("tn-err", "", f);
+// ---- «Reta a tus amigos» ----
+export async function challengeCreate() {
+  const name = $("#rn"),
+    nick = $("#ra"),
+    btn = $('[data-act="challengemake"]');
+  setErr("rn-err", "", name);
+  setErr("ra-err", "", nick);
+  setErr("ch-err", "");
+  btn.disabled = true;
   try {
-    await online.createClass(f.value);
+    await online.createChallenge(name.value, nick.value);
   } catch (e) {
-    setErr("tn-err", e.message, f);
-    f.focus();
+    if (S.screen !== "challenge") return;
+    btn.disabled = false;
+    if (e.code === "nombre_invalido") {
+      setErr("rn-err", e.message, name);
+      name.focus();
+    } else if (e.code === "apodo_invalido") {
+      setErr("ra-err", e.message, nick);
+      nick.focus();
+    } else setErr("ch-err", e.message);
     return;
   }
-  render();
+  go("challengedone");
 }
-export function teacherRank() {
-  const t = online.teacherSession();
+
+const avisar = (m) => {
+  const e = $("#ch-msg");
+  if (e) e.textContent = m;
+};
+export async function challengeCopy() {
+  const t = online.challengeOwner();
   if (!t) return;
-  S.rank = { code: t.code, name: "Tu clase", mine: false, status: "loading", rows: [], msg: "" };
-  go("rank");
-  loadRank();
-}
-export async function teacherRemove() {
-  const f = $("#tr"),
-    alias = f.value.trim();
-  const say = (m) => {
-    const e = $("#tr-msg");
-    if (e) e.textContent = m;
-  };
-  if (!alias) return say("Escribe el apodo de quien quieres quitar.");
   try {
-    const hecho = await online.teacherRemovePlayer(alias);
-    say(hecho ? "Listo: he quitado a " + alias + " de la clase." : "No hay nadie con ese apodo en tu clase.");
-    if (hecho) f.value = "";
-  } catch (e) {
-    say(e.message);
+    await navigator.clipboard.writeText(t.code);
+    avisar("Código copiado.");
+  } catch {
+    avisar("No he podido copiarlo. Escríbelo a mano: " + t.code);
   }
 }
-export function teacherDelAsk() {
+export async function challengeShare() {
+  const t = online.challengeOwner();
+  if (!t || !navigator.share) return;
+  try {
+    await navigator.share({
+      title: "Reto de Pipo",
+      text: "Únete a mi reto de verbos irregulares con el código " + t.code,
+      url: location.origin + location.pathname,
+    });
+  } catch {
+    /* quien comparte puede cancelar: no es un error */
+  }
+}
+export function challengeDelAsk() {
   modal(
-    "<h2>¿Borrar la clase?</h2>" +
-      "<p>Se borrarán la clase, todos los apodos y todas las partidas. No se puede deshacer.</p>" +
+    "<h2>¿Borrar el reto?</h2>" +
+      "<p>Se borrarán el reto, los apodos y las partidas de <b>todas</b> las personas que están en él. No se puede deshacer.</p>" +
       '<p class="err" id="del-err" role="alert"></p>' +
       '<div class="row"><button class="btn go" data-act="modalclose">Mejor no</button>' +
-      '<button class="btn" data-act="teacherdel">Sí, borrar la clase</button></div>'
+      '<button class="btn" data-act="challengedel">Sí, borrar el reto</button></div>'
   );
 }
-export async function teacherDel() {
+export async function challengeDel() {
   try {
-    const hecho = await online.teacherDeleteClass();
-    if (!hecho) store.remove("teach"); // ya no existe en el servidor: se olvida aquí también
+    await online.deleteChallenge();
   } catch (e) {
     setErr("del-err", e.message);
     return;
   }
   closeModal();
-  render();
+  S.rank = null;
+  go("home");
 }
 
 // ---- enviar la partida al terminar un nivel ----

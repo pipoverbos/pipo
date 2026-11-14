@@ -1,4 +1,4 @@
-// Pantallas de las clases: unirse, ranking y gestión de quien creó la clase.
+// Pantallas de las clases: unirse, ranking y retos entre amigos.
 import { esc } from "../utils.js";
 import { store } from "../store.js";
 import { S } from "../state.js";
@@ -18,7 +18,7 @@ const cabecera = (titulo, atras) =>
 export function joinView(v) {
   v.innerHTML =
     '<section class="cls">' +
-    cabecera("Mi clase", "home") +
+    cabecera("Unirme a una clase", "home") +
     '<div class="talk stage">' +
     pipo("think") +
     '<div class="bubble">Pídele a tu profe el código de la clase. ¡Son 6 letras o números!</div></div>' +
@@ -36,14 +36,14 @@ export function joinView(v) {
     '<div class="row center mt"><button class="btn go big" data-act="joinclass">Unirme a la clase</button></div>' +
     '<p class="err center" id="join-err" role="alert"></p>' +
     '<p class="muted small center">Solo guardamos tu apodo, el código de la clase y tus puntos. Nada más.</p>' +
-    '<div class="teachbox"><p class="muted small">¿Eres profe?</p><button class="btn small" data-act="teacher">Crear una clase</button></div>' +
     "</section>";
 }
 
 export function rankView(v) {
   const r = S.rank;
   if (!r) return;
-  const yo = (online.session() || {}).alias;
+  const yo = (online.session() || {}).alias,
+    dueno = online.challengeOwner();
   const filas = r.rows
     .map(function (f, i) {
       const soy = r.mine && yo && f.alias.toLowerCase() === yo.toLowerCase();
@@ -68,7 +68,7 @@ export function rankView(v) {
     .join("");
   v.innerHTML =
     '<section class="cls">' +
-    cabecera("Ranking", r.mine ? "home" : "teacher") +
+    cabecera("Ranking", "home") +
     '<div class="card rankhead"><div><b>' +
     esc(r.name) +
     '</b><p class="muted small" style="margin:0">Código ' +
@@ -83,36 +83,63 @@ export function rankView(v) {
     (filas ? '<ol class="rank" aria-label="Clasificación de la clase">' + filas + "</ol>" : "") +
     '<p class="muted small center">Cuenta la mejor partida de cada nivel y dificultad. Repetir un nivel solo sube tu marca si lo haces mejor.</p>' +
     (r.mine
-      ? '<div class="teachbox"><button class="linkbtn" data-act="leaveask">Salir de la clase y borrar mis datos</button></div>'
+      ? '<div class="teachbox"><button class="linkbtn" data-act="leaveask">Salir de la clase y borrar mis datos</button>' +
+        (dueno && dueno.code === r.code
+          ? '<button class="linkbtn" data-act="challengedelask">Borrar este reto para todos</button>'
+          : "") +
+        "</div>"
       : "") +
     "</section>";
 }
 
-export function teacherView(v) {
-  const t = online.teacherSession();
-  let cuerpo;
-  if (!t) {
-    cuerpo =
-      '<div class="card mt"><label class="lbl" for="tn">Nombre de la clase</label>' +
-      '<input class="field" id="tn" maxlength="40" autocomplete="off" aria-describedby="tn-help tn-err">' +
-      '<p class="muted small" id="tn-help">Por ejemplo, «1º A de ESO». No pongas nombres de alumnos.</p>' +
-      '<p class="err" id="tn-err" role="alert"></p></div>' +
-      '<div class="row center mt"><button class="btn go big" data-act="teachercreate">Crear la clase</button></div>';
-  } else {
-    cuerpo =
-      '<div class="card mt center"><p class="muted">El código de tu clase es</p>' +
-      '<p class="codebig" aria-label="' +
-      esc(t.code.split("").join(" ")) +
-      '">' +
-      esc(t.code) +
-      '</p><p class="muted small">Pásaselo al alumnado: lo escribirán en «Mi clase».</p></div>' +
-      '<div class="row center mt"><button class="btn main" data-act="teacherrank">Ver el ranking</button></div>' +
-      '<div class="card mt"><label class="lbl" for="tr">Quitar a un alumno de la clase</label>' +
-      '<input class="field" id="tr" maxlength="20" autocomplete="off" aria-describedby="tr-msg">' +
-      '<div class="row mt"><button class="btn small" data-act="teacherremove">Quitar</button></div>' +
-      '<p class="muted small" id="tr-msg" role="status"></p></div>' +
-      '<div class="teachbox"><button class="linkbtn" data-act="teacherdelask">Borrar la clase entera</button>' +
-      '<p class="muted small">La clase solo se gestiona desde este navegador. Si no se juega en ella durante 12 meses, se borra sola.</p></div>';
+export function challengeView(v) {
+  v.innerHTML =
+    '<section class="cls">' +
+    cabecera("Reta a tus amigos", "home") +
+    '<p class="mt">Crea un ranking solo para vosotros. Te damos un código y se lo pasas a quien quieras (hasta 30 personas).</p>' +
+    '<div class="card mt">' +
+    '<label class="lbl" for="rn">Nombre del reto</label>' +
+    '<input class="field" id="rn" maxlength="40" autocomplete="off" aria-describedby="rn-help rn-err">' +
+    '<p class="muted small" id="rn-help">Por ejemplo, «Los cracks del recreo». No pongas nombres reales.</p>' +
+    '<p class="err" id="rn-err" role="alert"></p>' +
+    '<label class="lbl" for="ra">Tu apodo</label>' +
+    '<input class="field" id="ra" maxlength="20" autocomplete="off" aria-describedby="ra-help ra-err" value="' +
+    esc(store.get("name", "")) +
+    '">' +
+    '<p class="muted small" id="ra-help">Así te verán tus amigos. Usa un apodo, no tu nombre real.</p>' +
+    '<p class="err" id="ra-err" role="alert"></p></div>' +
+    '<div class="row center mt"><button class="btn go big" data-act="challengemake">Crear el reto</button></div>' +
+    '<p class="err center" id="ch-err" role="alert"></p>' +
+    '<div class="card note"><b>Qué guardamos:</b> tu apodo y tus puntos. Nada más; en un reto no se guardan tus fallos. ' +
+    "El reto se borra solo si pasan 3 meses sin que nadie juegue, y quien lo crea puede borrarlo cuando quiera.</div>" +
+    "</section>";
+}
+
+export function challengeDoneView(v) {
+  const s = online.session(),
+    t = online.challengeOwner();
+  if (!s || !t) {
+    v.innerHTML = '<section class="cls">' + cabecera("Reta a tus amigos", "home") + "</section>";
+    return;
   }
-  v.innerHTML = '<section class="cls">' + cabecera("Crear una clase", "class") + cuerpo + "</section>";
+  v.innerHTML =
+    '<section class="cls">' +
+    cabecera("¡Reto creado!", "home") +
+    "<p>«<b>" +
+    esc(s.name) +
+    "</b>» está listo y ya estás dentro como <b>" +
+    esc(s.alias) +
+    '</b>.</p><div class="card mt center"><p class="muted">Pasa este código a tus amigos</p>' +
+    '<p class="codebig" aria-label="' +
+    esc(t.code.split("").join(" ")) +
+    '">' +
+    esc(t.code) +
+    '</p><div class="row center"><button class="btn small" data-act="challengecopy">Copiar código</button>' +
+    (navigator.share ? '<button class="btn small" data-act="challengeshare">Compartir</button>' : "") +
+    '</div><p class="muted small" id="ch-msg" role="status"></p>' +
+    '<p class="muted small">Ellos abren el juego, eligen «Soy alumno», luego «Unirme a una clase» y escriben el código.</p></div>' +
+    '<div class="row center mt"><button class="btn go big" data-act="class">Ver el ranking</button></div>' +
+    '<div class="row center mt"><button class="btn" data-act="play">Jugar ahora</button></div>' +
+    '<div class="teachbox"><button class="linkbtn" data-act="challengedelask">Borrar este reto</button></div>' +
+    "</section>";
 }

@@ -2,6 +2,7 @@
 // Es un recorrido seguido (unirse, jugar, ranking, salir, crear clase), así que los tests dependen del orden.
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { $, $$, act, boot, click, solve, stored, type } from "../helpers/app.js";
+import { store } from "../../js/store.js";
 
 const ID = "123e4567-e89b-42d3-a456-426614174000";
 const SECRETO = "0123456789abcdef0123456789abcdef";
@@ -43,10 +44,10 @@ const FILAS = [
 ];
 
 describe("unirse a una clase", () => {
-  it("«Mi clase» en el inicio lleva a la pantalla de unirse, con el apodo ya puesto", () => {
-    expect($('[data-act="class"]').textContent).toContain("Juega con tu clase");
+  it("«Unirme a una clase» en el inicio lleva a la pantalla de unirse, con el apodo ya puesto", () => {
+    expect($('[data-act="class"]').textContent).toContain("Unirme a una clase");
     act("class");
-    expect(titulo()).toBe("Mi clase");
+    expect(titulo()).toBe("Unirme a una clase");
     expect($("#cn").value).toBe("Pipa");
   });
 
@@ -114,9 +115,10 @@ describe("ranking", () => {
     expect($$(".rank li")).toHaveLength(2);
   });
 
-  it("el inicio ya enseña el ranking de la clase y «Mi clase» lleva directo a él", async () => {
+  it("el inicio ya enseña el ranking de la clase y «Mi clase» lleva directo a él (sin ofrecer otro reto)", async () => {
     act("home");
     expect($('[data-act="class"]').textContent).toContain("Ranking de 1º A de ESO");
+    expect($('[data-act="challenge"]')).toBeNull(); // en una clase no se crea otro reto
     act("class");
     await flush();
     expect(titulo()).toBe("Ranking");
@@ -211,71 +213,110 @@ describe("salir de la clase", () => {
     expect(stored("cls")).toBeNull();
     expect($("#modal .modal")).toBeNull();
     expect(titulo()).toBe("Pipo y los verbos irregulares");
-    expect($('[data-act="class"]').textContent).toContain("Juega con tu clase");
+    expect($('[data-act="class"]').textContent).toContain("Unirme a una clase");
   });
 });
 
-describe("crear una clase (profe)", () => {
-  it("el nombre es obligatorio", async () => {
-    respuestas.create_class = () => fallo("nombre_invalido");
-    act("class");
-    act("teacher");
-    expect(titulo()).toBe("Crear una clase");
-    act("teachercreate");
+describe("Reta a tus amigos", () => {
+  it("el inicio ofrece el reto a quien no está en una clase", () => {
+    expect($('[data-act="challenge"]').textContent).toContain("Reta a tus amigos");
+    act("challenge");
+    expect(titulo()).toBe("Reta a tus amigos");
+    expect($("#ra").value).toBe("Pipa");
+  });
+
+  it("el nombre y el apodo son obligatorios y se avisa en cada campo", async () => {
+    respuestas.create_challenge = () => fallo("nombre_invalido");
+    act("challengemake");
     await flush();
-    expect($("#tn-err").textContent).toMatch(/nombre de la clase/);
+    expect($("#rn-err").textContent).toMatch(/nombre de la clase/);
+    expect(document.activeElement).toBe($("#rn"));
+    type("#ra", "");
+    act("challengemake");
+    await flush();
+    expect($("#ra-err").textContent).toMatch(/2 a 20 letras/);
+    expect(document.activeElement).toBe($("#ra"));
+    expect($('[data-act="challengemake"]').disabled).toBe(false);
     expect(stored("teach")).toBeNull();
   });
 
-  it("al crearla enseña el código y recuerda la clave de quien la crea", async () => {
-    respuestas.create_class = () => ok([{ code: "DEF567", teacher_secret: PROFE }]);
-    type("#tn", "1º B de ESO");
-    act("teachercreate");
+  it("un fallo de conexión se avisa debajo del botón y no se crea nada", async () => {
+    respuestas.create_challenge = () => new TypeError("Failed to fetch");
+    type("#rn", "Los de 1º B");
+    type("#ra", "Pipa");
+    act("challengemake");
     await flush();
+    expect($("#ch-err").textContent).toMatch(/No hay conexión/);
+    expect(stored("cls")).toBeNull();
+  });
+
+  it("al crearlo enseña el código, entra en él y recuerda la clave de quien lo crea", async () => {
+    respuestas.create_challenge = () =>
+      ok([{ code: "DEF567", teacher_secret: PROFE, player_id: ID, player_secret: SECRETO, class_name: "Los de 1º B" }]);
+    act("challengemake");
+    await flush();
+    expect(llamadasA("create_challenge").at(-1).body).toEqual({ p_name: "Los de 1º B", p_alias: "Pipa" });
+    expect(titulo()).toBe("¡Reto creado!");
     expect($(".codebig").textContent).toBe("DEF567");
     expect(stored("teach")).toEqual({ code: "DEF567", secret: PROFE });
+    expect(stored("cls")).toMatchObject({ code: "DEF567", alias: "Pipa" });
   });
 
-  it("puede ver el ranking de su clase, sin opción de «salir»", async () => {
-    respuestas.class_ranking = () => ok([]);
-    act("teacherrank");
+  it("copia el código y, si el navegador no deja, lo dice para escribirlo a mano", async () => {
+    const writeText = vi.fn().mockResolvedValue();
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    act("challengecopy");
+    await flush();
+    expect(writeText).toHaveBeenCalledWith("DEF567");
+    expect($("#ch-msg").textContent).toBe("Código copiado.");
+    writeText.mockRejectedValue(new Error("denegado"));
+    act("challengecopy");
+    await flush();
+    expect($("#ch-msg").textContent).toContain("DEF567");
+    delete navigator.clipboard;
+  });
+
+  it("desde ahí se ve el ranking del reto, con la opción de borrarlo para todos", async () => {
+    respuestas.class_ranking = () => ok([{ alias: "Pipa", points: 0, levels: 0 }]);
+    act("class");
     await flush();
     expect(titulo()).toBe("Ranking");
-    expect($(".rankhead").textContent).toContain("DEF567");
-    expect($("main").textContent).toContain("Todavía no hay partidas");
-    expect($('[data-act="leaveask"]')).toBeNull();
-    act("teacher");
-    expect(titulo()).toBe("Crear una clase");
+    expect($('[data-act="challengedelask"]')).not.toBeNull();
   });
 
-  it("quita a un alumno y avisa si no existe", async () => {
-    respuestas.teacher_remove_player = () => ok(false);
-    type("#tr", "Nadie");
-    act("teacherremove");
-    await flush();
-    expect($("#tr-msg").textContent).toMatch(/No hay nadie con ese apodo/);
-    respuestas.teacher_remove_player = () => ok(true);
-    act("teacherremove");
-    await flush();
-    expect($("#tr-msg").textContent).toContain("he quitado a Nadie");
-    expect(llamadasA("teacher_remove_player").at(-1).body).toEqual({
-      p_code: "DEF567",
-      p_teacher_secret: PROFE,
-      p_alias: "Nadie",
-    });
-  });
-
-  it("borrar la clase pide confirmación y, al confirmar, vuelve a pedir un nombre", async () => {
-    respuestas.teacher_delete_class = () => ok(true);
-    act("teacherdelask");
-    expect($("#modal h2").textContent).toBe("¿Borrar la clase?");
+  it("borrar el reto pide confirmación, avisa sin conexión y, al confirmar, borra todo y vuelve al inicio", async () => {
+    act("challengedelask");
+    expect($("#modal h2").textContent).toBe("¿Borrar el reto?");
     click($('#modal [data-act="modalclose"]'));
     expect(stored("teach")).not.toBeNull();
-    act("teacherdelask");
-    act("teacherdel");
+    respuestas.teacher_delete_class = () => new TypeError("Failed to fetch");
+    act("challengedelask");
+    act("challengedel");
     await flush();
+    expect($("#del-err").textContent).toMatch(/No hay conexión/);
+    expect(stored("teach")).not.toBeNull();
+    respuestas.teacher_delete_class = () => ok(true);
+    act("challengedel");
+    await flush();
+    expect(llamadasA("teacher_delete_class").at(-1).body).toEqual({ p_code: "DEF567", p_teacher_secret: PROFE });
     expect($("#modal .modal")).toBeNull();
     expect(stored("teach")).toBeNull();
-    expect($("#tn")).not.toBeNull();
+    expect(stored("cls")).toBeNull();
+    expect(titulo()).toBe("Pipo y los verbos irregulares");
+  });
+});
+
+describe("un reto que ya no está en esta clase", () => {
+  it("quien creó un reto y luego entró en otra clase no ve el botón de borrar el reto en esa clase", async () => {
+    store.set("teach", { code: "ZZZ222", secret: PROFE });
+    respuestas.join_class = () => ok([{ player_id: ID, player_secret: SECRETO, class_name: "1º A de ESO" }]);
+    respuestas.class_ranking = () => ok(FILAS);
+    act("class");
+    type("#cc", "ABC234");
+    act("joinclass");
+    await flush();
+    expect(titulo()).toBe("Ranking");
+    expect($('[data-act="leaveask"]')).not.toBeNull();
+    expect($('[data-act="challengedelask"]')).toBeNull();
   });
 });

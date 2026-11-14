@@ -66,9 +66,12 @@ export function homeView(v) {
     n +
     (n === 1 ? " elegido" : " elegidos") +
     ' · elige por listas</small></span><span aria-hidden="true">›</span></button>' +
-    '<button class="opt" data-act="class"><span><b>Mi clase</b><small>' +
-    (clase ? "Ranking de " + esc(clase.name) : "Juega con tu clase y mira el ranking") +
-    '</small></span><span aria-hidden="true">›</span></button>' +
+    (clase
+      ? '<button class="opt" data-act="class"><span><b>Mi clase</b><small>Ranking de ' +
+        esc(clase.name) +
+        '</small></span><span aria-hidden="true">›</span></button>'
+      : '<button class="opt" data-act="class"><span><b>Unirme a una clase</b><small>Con el código que te dio tu profe</small></span><span aria-hidden="true">›</span></button>' +
+        '<button class="opt" data-act="challenge"><span><b>Reta a tus amigos</b><small>Crea tu propio ranking y pasa el código</small></span><span aria-hidden="true">›</span></button>') +
     (missN >= 3
       ? '<button class="opt" data-act="practice"><span><b>Repaso de errores</b><small>Practica los ' +
         Math.min(missN, 8) +
@@ -86,6 +89,6 @@ export function homeView(v) {
     '">' +
     (store.get("sound", true) ? ICON.sound : ICON.mute) +
     "</button>" +
-    '<button class="btn small" data-act="meetpipo">Conoce a Pipo</button></div></div></div></div></section>';
+    '<button class="btn small" data-act="role">Cambiar de rol</button></div></div></div></div></section>';
   v.innerHTML = h;
 }

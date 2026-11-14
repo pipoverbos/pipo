@@ -4,8 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { BASE } from "../../js/data/base-verbs.js";
 
-/** Arranca el juego con el HTML real de index.html. Cada archivo de test se ejecuta aislado y llama a boot() una vez. */
-export async function boot({ seen = true, storage = {} } = {}) {
+/**
+ * Arranca el juego con el HTML real de index.html. Cada archivo de test se ejecuta aislado y llama a boot() una vez.
+ * Por defecto entra como alumno (la primera pantalla pregunta el rol); con `role: false` se queda en esa pantalla.
+ */
+export async function boot({ seen = true, storage = {}, role = true } = {}) {
   localStorage.clear();
   localStorage.setItem("pipo2.seen", JSON.stringify(seen));
   // Quien ya vio la presentación tiene apodo (sin él, el juego vuelve a pedirlo): se pone uno salvo que el test diga otro.
@@ -19,6 +22,7 @@ export async function boot({ seen = true, storage = {} } = {}) {
   vi.useFakeTimers();
   await import("../../js/main.js");
   vi.advanceTimersByTime(5000); // la pantalla de carga termina sola
+  if (role) document.querySelector('[data-act="student"]').dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
 
 export const $ = (sel) => document.querySelector(sel);

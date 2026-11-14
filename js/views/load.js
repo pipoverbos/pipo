@@ -1,6 +1,5 @@
 // Pantalla de carga.
-import { $, esc, pick, validAlias } from "../utils.js";
-import { store } from "../store.js";
+import { $, esc, pick } from "../utils.js";
 import { S } from "../state.js";
 import { TIPS } from "../data/config.js";
 import { pipo } from "../ui/pipo.js";
@@ -33,8 +32,7 @@ export function loadView(v) {
       setTimeout(function () {
         if (S.screen === "load") {
           S.meet = 0;
-          // Sin apodo no se juega: también quien ya había visto la presentación pasa por ella.
-          go(store.get("seen", false) && validAlias(store.get("name", "")) ? "home" : "meet");
+          go("role");
         }
       }, 350);
     }
