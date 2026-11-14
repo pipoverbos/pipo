@@ -4,7 +4,7 @@
 //   * El juego tiene que seguir funcionando sin conexión: nada de aquí se llama al arrancar y todo fallo
 //     llega como un OnlineError con un mensaje en español listo para enseñar.
 //   * Nunca se fía de lo que contesta el servidor: cada respuesta se comprueba antes de usarla.
-//   * Los secretos (del jugador y de quien crea la clase) solo viven en localStorage (store) y nunca salen en
+//   * Los secretos (del jugador y de quien crea el reto) solo viven en localStorage (store) y nunca salen en
 //     mensajes de error ni en el registro.
 import { store } from "./store.js";
 import { ONLINE } from "./data/config.js";
@@ -98,17 +98,30 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       const s = store.get("cls", null);
       return s ? { code: s.code, name: s.name, alias: s.alias } : null;
     },
-    /** Datos de la clase creada desde este navegador (código y clave de quien la creó), o null. */
-    teacherSession() {
+    /** Datos del reto creado desde este navegador (código y clave de quien lo creó), o null. */
+    challengeOwner() {
       return store.get("teach", null);
     },
 
-    /** Crea una clase. Guarda la clave de quien la crea para poder borrarla luego. Devuelve el código. */
-    async createClass(name) {
-      const r = primera(await rpc("create_class", { p_name: String(name ?? "") }));
-      if (!r || !CODIGO.test(r.code) || !SECRETO.test(r.teacher_secret)) throw malaRespuesta();
+    /** «Reta a tus amigos»: crea un reto, entra en él con el apodo dado y recuerda la clave para poder borrarlo. */
+    async createChallenge(name, alias) {
+      const a = cleanAlias(alias ?? "");
+      if (!validAlias(a)) throw new OnlineError("apodo_invalido");
+      const r = primera(await rpc("create_challenge", { p_name: String(name ?? ""), p_alias: a }));
+      if (
+        !r ||
+        !CODIGO.test(r.code) ||
+        !SECRETO.test(r.teacher_secret) ||
+        !UUID.test(r.player_id) ||
+        !SECRETO.test(r.player_secret) ||
+        typeof r.class_name !== "string" ||
+        r.class_name.length < 1 ||
+        r.class_name.length > 40
+      )
+        throw malaRespuesta();
       store.set("teach", { code: r.code, secret: r.teacher_secret });
-      return { code: r.code };
+      store.set("cls", { code: r.code, name: r.class_name, alias: a, id: r.player_id, secret: r.player_secret });
+      return { code: r.code, name: r.class_name, alias: a };
     },
 
     /** Entra en una clase con un apodo y la recuerda en este navegador. */
@@ -178,26 +191,15 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       return ok;
     },
 
-    /** Quien creó la clase borra a un alumno. Devuelve si había alguien con ese apodo. */
-    async teacherRemovePlayer(alias) {
-      const t = store.get("teach", null);
-      if (!t) throw new OnlineError("sin_clase");
-      const ok = await rpc("teacher_remove_player", {
-        p_code: t.code,
-        p_teacher_secret: t.secret,
-        p_alias: String(alias ?? ""),
-      });
-      if (typeof ok !== "boolean") throw malaRespuesta();
-      return ok;
-    },
-
-    /** Quien creó la clase la borra entera, con todos sus alumnos y partidas. */
-    async teacherDeleteClass() {
+    /** Quien creó el reto lo borra entero, con todos sus participantes y partidas. */
+    async deleteChallenge() {
       const t = store.get("teach", null);
       if (!t) throw new OnlineError("sin_clase");
       const ok = await rpc("teacher_delete_class", { p_code: t.code, p_teacher_secret: t.secret });
       if (typeof ok !== "boolean") throw malaRespuesta();
-      if (ok) store.remove("teach");
+      store.remove("teach");
+      // Si este navegador estaba dentro del reto, su jugador se borró con él.
+      if ((store.get("cls", null) || {}).code === t.code) store.remove("cls");
       return ok;
     },
   };

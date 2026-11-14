@@ -3,6 +3,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import axe from "axe-core";
 import { $, act, boot, solve } from "../helpers/app.js";
+import { store } from "../../js/store.js";
 
 // axe prueba un <canvas> para detectar ligaduras de iconos; jsdom no lo implementa y avisa por consola.
 HTMLCanvasElement.prototype.getContext = () => null;
@@ -67,7 +68,10 @@ describe("accesibilidad: primera visita", () => {
   it("presentación de Pipo (3 pasos)", async () => {
     act("map"); // cierra la ventana final
     act("home");
-    act("meetpipo");
+    act("role");
+    expect(await audit(), "elección de rol").toEqual([]);
+    store.set("name", ""); // sin apodo, «Soy alumno» pasa por la presentación
+    act("student");
     for (let step = 0; step < 3; step++) {
       expect(await audit(), `paso ${step + 1}`).toEqual([]);
       if (step < 2) act("meetnext");

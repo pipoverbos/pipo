@@ -28,7 +28,15 @@ describe("accesibilidad de las clases (axe-core)", () => {
       ],
       submit_run: [{ points: 340, stars: 3 }],
       leave_class: true,
-      create_class: [{ code: "DEF567", teacher_secret: "fedcba9876543210fedcba9876543210" }],
+      create_challenge: [
+        {
+          code: "DEF567",
+          teacher_secret: "fedcba9876543210fedcba9876543210",
+          player_id: ID,
+          player_secret: SECRETO,
+          class_name: "Los de 1º B",
+        },
+      ],
     };
     vi.stubGlobal(
       "fetch",
@@ -41,7 +49,7 @@ describe("accesibilidad de las clases (axe-core)", () => {
     vi.useRealTimers(); // axe usa setTimeout por dentro: con temporizadores falsos nunca termina
   });
 
-  it("inicio con «Mi clase»", async () => expect(await audit()).toEqual([]));
+  it("inicio con «Unirme a una clase» y «Reta a tus amigos»", async () => expect(await audit()).toEqual([]));
 
   it("unirse a una clase", async () => {
     act("class");
@@ -79,20 +87,25 @@ describe("accesibilidad de las clases (axe-core)", () => {
     expect(await audit()).toEqual([]);
   });
 
-  it("crear una clase, antes y después de crearla", async () => {
+  it("reta a tus amigos, antes y después de crearlo", async () => {
     act("map");
     act("home");
     act("class");
-    act("leaveask"); // quien está en una clase no ve «Crear una clase»: se sale primero
+    act("leaveask"); // quien está en una clase no ve «Reta a tus amigos»: se sale primero
     act("leavedo");
     await esperar();
-    act("class");
-    act("teacher");
+    act("challenge");
     expect(await audit()).toEqual([]);
-    type("#tn", "1º B de ESO");
-    act("teachercreate");
+    type("#rn", "Los de 1º B");
+    act("challengemake");
     await esperar();
     expect($(".codebig")).not.toBeNull();
     expect(await audit()).toEqual([]);
+  });
+
+  it("confirmación de borrar el reto", async () => {
+    act("challengedelask");
+    expect(await audit()).toEqual([]);
+    act("modalclose");
   });
 });

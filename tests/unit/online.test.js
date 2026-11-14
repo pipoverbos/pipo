@@ -23,6 +23,7 @@ function servidor(...respuestas) {
   return { fetchFn, llamadas, cliente: createClient({ url: URL, key: KEY, timeoutMs: 50, fetchFn }) };
 }
 const ok = (body) => ({ status: 200, body });
+const RETO = { code: "ABC234", teacher_secret: PROFE, player_id: ID, player_secret: SECRETO, class_name: "Los de 1ºB" };
 const fallo = (message) => ({ status: 400, body: { code: "P0001", message } });
 const dentro = () => store.set("cls", { code: "ABC234", name: "1ºA", alias: "Pipa", id: ID, secret: SECRETO });
 
@@ -40,13 +41,13 @@ describe("cleanCode", () => {
 
 describe("la petición", () => {
   it("va por POST a /rest/v1/rpc/<función> con la clave pública y sin cabecera Authorization", async () => {
-    const { cliente, llamadas } = servidor(ok([{ code: "ABC234", teacher_secret: PROFE }]));
-    await cliente.createClass("1ºA");
+    const { cliente, llamadas } = servidor(ok([RETO]));
+    await cliente.createChallenge("1ºA", "Pipa");
     const [l] = llamadas;
-    expect(l.url).toBe(`${URL}/rest/v1/rpc/create_class`);
+    expect(l.url).toBe(`${URL}/rest/v1/rpc/create_challenge`);
     expect(l.init.method).toBe("POST");
     expect(l.init.headers).toEqual({ apikey: KEY, "Content-Type": "application/json" });
-    expect(l.body).toEqual({ p_name: "1ºA" });
+    expect(l.body).toEqual({ p_name: "1ºA", p_alias: "Pipa" });
   });
 });
 
@@ -57,22 +58,25 @@ describe("errores", () => {
     )
   )("el código %s del servidor llega con su mensaje en español", async (codigo) => {
     const { cliente } = servidor(fallo(codigo));
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: codigo, message: MENSAJES[codigo] });
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({
+      code: codigo,
+      message: MENSAJES[codigo],
+    });
   });
   it("un error desconocido del servidor no filtra su texto", async () => {
     const { cliente } = servidor({ status: 500, body: { message: 'relation "private.x" does not exist' } });
-    const e = await cliente.createClass("x").catch((x) => x);
+    const e = await cliente.createChallenge("x", "Pipa").catch((x) => x);
     expect(e).toBeInstanceOf(OnlineError);
     expect(e.code).toBe("error_servidor");
     expect(e.message).not.toMatch(/relation|private/);
   });
   it("un 429 se trata como «demasiado rápido»", async () => {
     const { cliente } = servidor({ status: 429, body: "Too Many Requests" });
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: "demasiado_rapido" });
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({ code: "demasiado_rapido" });
   });
   it("sin red: sin_conexion", async () => {
     const { cliente } = servidor(new TypeError("Failed to fetch"));
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: "sin_conexion" });
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({ code: "sin_conexion" });
   });
   it("si el servidor no contesta a tiempo: tiempo_agotado", async () => {
     const fetchFn = (_u, { signal }) =>
@@ -80,11 +84,11 @@ describe("errores", () => {
         signal.addEventListener("abort", () => rechazar(Object.assign(new Error("abortado"), { name: "AbortError" })))
       );
     const cliente = createClient({ url: URL, key: KEY, timeoutMs: 20, fetchFn });
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: "tiempo_agotado" });
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({ code: "tiempo_agotado" });
   });
   it("una respuesta que no es JSON es un error del servidor", async () => {
     const { cliente } = servidor({ status: 200, body: "<html>hola</html>" });
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: "error_servidor" });
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({ code: "error_servidor" });
   });
   it("los mensajes de error nunca contienen secretos", async () => {
     dentro();
@@ -94,21 +98,37 @@ describe("errores", () => {
   });
 });
 
-describe("createClass", () => {
-  it("guarda la clave de quien crea la clase y devuelve solo el código", async () => {
-    const { cliente } = servidor(ok([{ code: "ABC234", teacher_secret: PROFE }]));
-    expect(await cliente.createClass("1ºA")).toEqual({ code: "ABC234" });
-    expect(cliente.teacherSession()).toEqual({ code: "ABC234", secret: PROFE });
+describe("createChallenge", () => {
+  it("entra en el reto y guarda la clave de quien lo crea; devuelve solo datos públicos", async () => {
+    const { cliente } = servidor(ok([RETO]));
+    expect(await cliente.createChallenge("Los de 1ºB", " Pipa ")).toEqual({
+      code: "ABC234",
+      name: "Los de 1ºB",
+      alias: "Pipa",
+    });
+    expect(cliente.challengeOwner()).toEqual({ code: "ABC234", secret: PROFE });
+    expect(cliente.session()).toEqual({ code: "ABC234", name: "Los de 1ºB", alias: "Pipa" });
+    expect(store.get("cls", null).secret).toBe(SECRETO);
+  });
+  it("un apodo inválido ni siquiera llama al servidor", async () => {
+    const { cliente, fetchFn } = servidor(ok([RETO]));
+    await expect(cliente.createChallenge("x", "<b>")).rejects.toMatchObject({ code: "apodo_invalido" });
+    expect(fetchFn).not.toHaveBeenCalled();
   });
   it.each([
     [[]],
-    [[{ code: "mal", teacher_secret: PROFE }]],
-    [[{ code: "ABC234", teacher_secret: "corto" }]],
+    [[{ ...RETO, code: "mal" }]],
+    [[{ ...RETO, teacher_secret: "corto" }]],
+    [[{ ...RETO, player_id: "no-uuid" }]],
+    [[{ ...RETO, player_secret: "corto" }]],
+    [[{ ...RETO, class_name: "" }]],
+    [[{ ...RETO, class_name: "x".repeat(41) }]],
     [{ code: "ABC234" }],
   ])("rechaza una respuesta mal formada %j", async (cuerpo) => {
     const { cliente } = servidor(ok(cuerpo));
-    await expect(cliente.createClass("x")).rejects.toMatchObject({ code: "error_servidor" });
-    expect(cliente.teacherSession()).toBeNull();
+    await expect(cliente.createChallenge("x", "Pipa")).rejects.toMatchObject({ code: "error_servidor" });
+    expect(cliente.challengeOwner()).toBeNull();
+    expect(cliente.session()).toBeNull();
   });
 });
 
@@ -253,26 +273,30 @@ describe("leaveClass", () => {
   });
 });
 
-describe("funciones de quien creó la clase", () => {
+describe("deleteChallenge", () => {
   beforeEach(() => store.set("teach", { code: "ABC234", secret: PROFE }));
-  it("teacherRemovePlayer envía código, clave y apodo", async () => {
+  it("envía código y clave, y olvida el reto y la pertenencia a él", async () => {
+    dentro();
     const { cliente, llamadas } = servidor(ok(true));
-    expect(await cliente.teacherRemovePlayer("Pipa")).toBe(true);
-    expect(llamadas[0].body).toEqual({ p_code: "ABC234", p_teacher_secret: PROFE, p_alias: "Pipa" });
+    expect(await cliente.deleteChallenge()).toBe(true);
+    expect(llamadas[0].body).toEqual({ p_code: "ABC234", p_teacher_secret: PROFE });
+    expect(cliente.challengeOwner()).toBeNull();
+    expect(cliente.session()).toBeNull();
   });
-  it("teacherDeleteClass olvida la clave solo si se borró", async () => {
-    const a = servidor(ok(false));
-    expect(await a.cliente.teacherDeleteClass()).toBe(false);
-    expect(a.cliente.teacherSession()).not.toBeNull();
-    const b = servidor(ok(true));
-    expect(await b.cliente.teacherDeleteClass()).toBe(true);
-    expect(b.cliente.teacherSession()).toBeNull();
+  it("si este navegador estaba en otra clase, no la toca", async () => {
+    store.set("cls", { code: "ZZZ222", name: "Otra", alias: "Pipa", id: ID, secret: SECRETO });
+    await servidor(ok(true)).cliente.deleteChallenge();
+    expect(store.get("cls", null)).not.toBeNull();
   });
-  it("sin clase creada aquí: sin_clase y sin llamar al servidor", async () => {
+  it("sin conexión conserva la clave para poder reintentar", async () => {
+    const { cliente } = servidor(new TypeError("Failed to fetch"));
+    await expect(cliente.deleteChallenge()).rejects.toMatchObject({ code: "sin_conexion" });
+    expect(cliente.challengeOwner()).not.toBeNull();
+  });
+  it("sin reto creado aquí: sin_clase y sin llamar al servidor", async () => {
     store.remove("teach");
     const { cliente, fetchFn } = servidor();
-    await expect(cliente.teacherDeleteClass()).rejects.toMatchObject({ code: "sin_clase" });
-    await expect(cliente.teacherRemovePlayer("a")).rejects.toMatchObject({ code: "sin_clase" });
+    await expect(cliente.deleteChallenge()).rejects.toMatchObject({ code: "sin_clase" });
     expect(fetchFn).not.toHaveBeenCalled();
   });
 });

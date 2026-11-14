@@ -17,11 +17,11 @@ import {
   joinSubmit,
   leaveAsk,
   leaveDo,
-  teacherCreate,
-  teacherRank,
-  teacherRemove,
-  teacherDelAsk,
-  teacherDel,
+  challengeCreate,
+  challengeCopy,
+  challengeShare,
+  challengeDelAsk,
+  challengeDel,
   sendRun,
 } from "./classes.js";
 
@@ -80,9 +80,17 @@ export function initEvents() {
         S.meet = Math.max(0, S.meet - 1);
         render();
         break;
-      case "meetpipo":
+      case "role":
+        closeModal();
+        setR(null);
+        S.role = null;
+        go("role");
+        break;
+      case "student":
+        S.role = "alumno";
         S.meet = 0;
-        go("meet");
+        // Sin apodo no se juega: también quien ya vio la presentación pasa por ella.
+        go(store.get("seen", false) && validAlias(store.get("name", "")) ? "home" : "meet");
         break;
       case "home":
         closeModal();
@@ -153,8 +161,23 @@ export function initEvents() {
       case "class":
         openClass();
         break;
-      case "teacher":
-        go("teacher");
+      case "challenge":
+        go("challenge");
+        break;
+      case "challengemake":
+        challengeCreate();
+        break;
+      case "challengecopy":
+        challengeCopy();
+        break;
+      case "challengeshare":
+        challengeShare();
+        break;
+      case "challengedelask":
+        challengeDelAsk();
+        break;
+      case "challengedel":
+        challengeDel();
         break;
       case "joinclass":
         joinSubmit();
@@ -167,21 +190,6 @@ export function initEvents() {
         break;
       case "leavedo":
         leaveDo();
-        break;
-      case "teachercreate":
-        teacherCreate();
-        break;
-      case "teacherrank":
-        teacherRank();
-        break;
-      case "teacherremove":
-        teacherRemove();
-        break;
-      case "teacherdelask":
-        teacherDelAsk();
-        break;
-      case "teacherdel":
-        teacherDel();
         break;
       case "resendrun":
         sendRun();
@@ -207,7 +215,7 @@ export function initEvents() {
       $('[data-act="meetnext"]').click();
     }
     // Intro en los campos de las clases: es lo mismo que pulsar su botón.
-    var enter = { cc: "joinclass", cn: "joinclass", tn: "teachercreate", tr: "teacherremove" }[e.target.id];
+    var enter = { cc: "joinclass", cn: "joinclass", rn: "challengemake", ra: "challengemake" }[e.target.id];
     if (e.key === "Enter" && enter) {
       e.preventDefault();
       $('[data-act="' + enter + '"]').click();
