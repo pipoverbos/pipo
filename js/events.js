@@ -11,6 +11,19 @@ import { closeModal } from "./ui/modal.js";
 import { refreshVerbs } from "./views/verbs.js";
 import { say, renderPlay } from "./views/game.js";
 import { startLevel, startPractice, place, check } from "./game.js";
+import {
+  openClass,
+  loadRank,
+  joinSubmit,
+  leaveAsk,
+  leaveDo,
+  teacherCreate,
+  teacherRank,
+  teacherRemove,
+  teacherDelAsk,
+  teacherDel,
+  sendRun,
+} from "./classes.js";
 
 export function initEvents() {
   document.addEventListener("click", function (e) {
@@ -137,6 +150,45 @@ export function initEvents() {
       case "check":
         check();
         break;
+      case "class":
+        openClass();
+        break;
+      case "teacher":
+        go("teacher");
+        break;
+      case "joinclass":
+        joinSubmit();
+        break;
+      case "rankreload":
+        loadRank();
+        break;
+      case "leaveask":
+        leaveAsk();
+        break;
+      case "leavedo":
+        leaveDo();
+        break;
+      case "teachercreate":
+        teacherCreate();
+        break;
+      case "teacherrank":
+        teacherRank();
+        break;
+      case "teacherremove":
+        teacherRemove();
+        break;
+      case "teacherdelask":
+        teacherDelAsk();
+        break;
+      case "teacherdel":
+        teacherDel();
+        break;
+      case "resendrun":
+        sendRun();
+        break;
+      case "modalclose":
+        closeModal();
+        break;
     }
   });
   document.addEventListener("input", function (e) {
@@ -154,6 +206,12 @@ export function initEvents() {
       e.preventDefault();
       $('[data-act="meetnext"]').click();
     }
+    // Intro en los campos de las clases: es lo mismo que pulsar su botón.
+    var enter = { cc: "joinclass", cn: "joinclass", tn: "teachercreate", tr: "teacherremove" }[e.target.id];
+    if (e.key === "Enter" && enter) {
+      e.preventDefault();
+      $('[data-act="' + enter + '"]').click();
+    }
     // Las casillas de la tabla son role="button" sobre una celda: no responden solas a Enter ni a Espacio.
     if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("td[data-slot]")) {
       e.preventDefault();
@@ -161,7 +219,7 @@ export function initEvents() {
     }
     // Escape en una ventana de resultado: la salida segura es volver al mapa o al inicio.
     if (e.key === "Escape") {
-      var out = $('#modal [data-act="map"], #modal [data-act="home"]');
+      var out = $('#modal [data-act="map"], #modal [data-act="home"], #modal [data-act="modalclose"]');
       if (out) out.click();
     }
   });

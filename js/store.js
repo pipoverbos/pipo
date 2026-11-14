@@ -41,13 +41,14 @@ const CODIGO = /^[A-HJ-NP-Z2-9]{6}$/;
 const SECRETO = /^[0-9a-f]{32}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** Clase en la que juega este navegador: código, nombre, identificador del jugador y su secreto. */
+/** Clase en la que juega este navegador: código, nombre, apodo, identificador del jugador y su secreto. */
 function limpiarClase(v) {
   if (v === null || typeof v !== "object") return undefined;
-  const { code, name, id, secret } = v;
+  const { code, name, alias, id, secret } = v;
   if (!CODIGO.test(code) || typeof name !== "string" || name.length < 1 || name.length > 40) return undefined;
+  if (typeof alias !== "string" || !validAlias(alias)) return undefined;
   if (!UUID.test(id) || !SECRETO.test(secret)) return undefined;
-  return { code, name, id, secret };
+  return { code, name, alias, id, secret };
 }
 
 /** Clase creada desde este navegador: código y clave de quien la creó. */

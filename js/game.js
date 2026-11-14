@@ -11,6 +11,7 @@ import { pipo } from "./ui/pipo.js";
 import { starsHTML } from "./ui/icons.js";
 import { modal } from "./ui/modal.js";
 import { go } from "./router.js";
+import { enClase, datosDePartida, sendRun } from "./classes.js";
 import { say, renderHud, renderPlay, shakeSlot } from "./views/game.js";
 
 export function cfgFor(i) {
@@ -263,6 +264,8 @@ export function finish() {
     '">' +
     (practice ? "Inicio" : "Mapa de niveles") +
     "</button>";
+  // Si se juega en una clase, la partida se envía al ranking (el repaso de errores no cuenta).
+  var enviar = !practice && enClase();
   modal(
     pipo("cheer") +
       "<h2>" +
@@ -271,11 +274,14 @@ export function finish() {
       (practice ? "" : starsHTML(stars)) +
       "<p>" +
       esc(txt) +
-      '</p><div class="row">' +
+      "</p>" +
+      (enviar ? '<div class="rankmsg" id="rank-msg" role="status"></div>' : "") +
+      '<div class="row">' +
       btns +
       "</div>"
   );
   say(title, "cheer");
+  if (enviar) sendRun(datosDePartida(R, store.get("diff", "normal")));
 }
 export function showDead() {
   modal(
