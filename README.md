@@ -96,7 +96,7 @@ Progreso:
 
 Modelo de datos: `classes` (código, nombre, hash de la clave del profesor), `players` (clase, apodo único por clase, hash del secreto) y `runs` (jugador, nivel, dificultad, aciertos, errores, estrellas, puntos, fecha). Las tablas están cerradas: el navegador solo llama a siete funciones (`create_class`, `join_class`, `submit_run`, `class_ranking`, `leave_class`, `teacher_remove_player`, `teacher_delete_class`).
 
-Fórmula de puntos (**provisional**, se puede cambiar): `aciertos × (10 + extra de dificultad) + estrellas × 50`, con extra 0 / 2 / 5 en fácil / normal / difícil. En el ranking cuenta solo la mejor partida de cada nivel y dificultad, para que repetir un nivel no acumule puntos.
+Fórmula de puntos (decidida; el servidor la calcula, así que cambiarla es una migración nueva): `aciertos × (10 + extra de dificultad) + estrellas × 50`, con extra 0 / 2 / 5 en fácil / normal / difícil. En el ranking cuenta solo la mejor partida de cada nivel y dificultad, para que repetir un nivel no acumule puntos.
 
 ### Fase 3 · Panel del profesor
 
