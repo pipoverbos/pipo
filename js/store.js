@@ -37,7 +37,29 @@ function limpiarSeleccion(v) {
   return v.filter((x) => typeof x === "string" && x.length > 0 && x.length <= 30).slice(0, 500);
 }
 
+const CODIGO = /^[A-HJ-NP-Z2-9]{6}$/;
+const SECRETO = /^[0-9a-f]{32}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** Clase en la que juega este navegador: código, nombre, identificador del jugador y su secreto. */
+function limpiarClase(v) {
+  if (v === null || typeof v !== "object") return undefined;
+  const { code, name, id, secret } = v;
+  if (!CODIGO.test(code) || typeof name !== "string" || name.length < 1 || name.length > 40) return undefined;
+  if (!UUID.test(id) || !SECRETO.test(secret)) return undefined;
+  return { code, name, id, secret };
+}
+
+/** Clase creada desde este navegador: código y clave de quien la creó. */
+function limpiarProfe(v) {
+  if (v === null || typeof v !== "object") return undefined;
+  const { code, secret } = v;
+  return CODIGO.test(code) && SECRETO.test(secret) ? { code, secret } : undefined;
+}
+
 export const SCHEMA = {
+  cls: limpiarClase,
+  teach: limpiarProfe,
   seen: esBool,
   sound: esBool,
   name: (v) => (typeof v === "string" && validAlias(v) ? v : undefined),

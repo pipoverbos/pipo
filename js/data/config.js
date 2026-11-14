@@ -1,6 +1,14 @@
 // Configuración del juego: dificultades, niveles, listas de verbos y consejos de la pantalla de carga.
 
 export const MIN = 10;
+// Servidor de clases y ranking (Supabase, región de la UE). La clave es la «publishable»: está pensada para ir
+// en el navegador y no da acceso a nada por sí sola, porque las tablas están cerradas y solo se puede llamar a
+// las funciones de supabase/migrations. Nunca pongas aquí una clave «secret» ni «service_role».
+export const ONLINE = {
+  url: "https://iubplukgekedcabipxwq.supabase.co",
+  key: "sb_publishable_8nNRyfIC0vveAcwOiCPPwQ_ye3wy966",
+  timeoutMs: 8000,
+};
 // Grupos de verbos que se pueden elegir de golpe en «Mis verbos». Cada lista va del infinitivo `from` al `to`,
 // según el orden de BASE. Las listas 1 y 2 son las del cuaderno original.
 export const LISTS = [
