@@ -93,6 +93,8 @@ Progreso:
 - [x] Módulo de conexión [`js/online.js`](js/online.js): solo `fetch`, tiempo límite, mensajes de error en español y respuestas comprobadas antes de usarlas.
 - [x] Pantallas «Mi clase»: unirse con código y apodo, ranking, y crear una clase (código, quitar a un alumno, borrar la clase). La partida se envía al ranking al superar un nivel; si falla, el juego sigue y se puede reintentar.
 - [x] «Salir de la clase y borrar mis datos» desde el ranking.
+- [x] Base de datos de profesores y retos ([`0003`](supabase/migrations/0003_profesores_y_retos.sql)): cuentas con usuario y contraseña (bcrypt, bloqueo tras 5 fallos, recuperación con código), varias clases por profesor con listas y dificultades configurables, seguimiento de niveles y verbos fallados, y retos entre amigos (hasta 30, sin guardar fallos; caducan a los 3 meses).
+- [ ] Pantalla de rol (alumno o profesor), cuentas de profesor, «Reta a tus amigos», configuración y seguimiento en el juego (la base de datos ya está lista; falta aplicar `0003` en Supabase y construir las pantallas).
 
 Modelo de datos: `classes` (código, nombre, hash de la clave del profesor), `players` (clase, apodo único por clase, hash del secreto) y `runs` (jugador, nivel, dificultad, aciertos, errores, estrellas, puntos, fecha). Las tablas están cerradas: el navegador solo llama a siete funciones (`create_class`, `join_class`, `submit_run`, `class_ranking`, `leave_class`, `teacher_remove_player`, `teacher_delete_class`).
 
