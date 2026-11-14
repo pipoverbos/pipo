@@ -89,7 +89,7 @@ Progreso:
 - [x] Esquema de base de datos y funciones en [`supabase/migrations/`](supabase/migrations/0001_clases_y_ranking.sql), con tests sobre PostgreSQL real (`tests/db/`).
 - [x] Borrador de [política de privacidad](docs/politica-privacidad-BORRADOR.md) (**sin publicar**: falta revisión experta y decidir la base legal y el consentimiento).
 - [x] Proyecto de Supabase creado (región UE, Fráncfort) y migración aplicada.
-- [ ] Programar la limpieza por inactividad (`pg_cron`).
+- [x] Programar la limpieza por inactividad (`pg_cron`).
 - [x] Módulo de conexión [`js/online.js`](js/online.js): solo `fetch`, tiempo límite, mensajes de error en español y respuestas comprobadas antes de usarlas.
 - [x] Pantallas «Mi clase»: unirse con código y apodo, ranking, y crear una clase (código, quitar a un alumno, borrar la clase). La partida se envía al ranking al superar un nivel; si falla, el juego sigue y se puede reintentar.
 - [x] «Salir de la clase y borrar mis datos» desde el ranking.
