@@ -1,6 +1,7 @@
 // Pantalla de inicio: jugar, dificultad, mis verbos y repaso.
 import { esc, pick } from "../utils.js";
 import { store } from "../store.js";
+import { online } from "../online.js";
 import { selV, selSet, getStars, missMap } from "../verbs.js";
 import { MIN, DIFFS, DIFFD } from "../data/config.js";
 import { pipo } from "../ui/pipo.js";
@@ -9,6 +10,7 @@ import { ICON, starSVG } from "../ui/icons.js";
 export function homeView(v) {
   var d = store.get("diff", "normal"),
     name = store.get("name", ""),
+    clase = online.session(),
     n = selV().length,
     sel = selSet();
   var st = getStars(d).reduce(function (a, b) {
@@ -64,6 +66,9 @@ export function homeView(v) {
     n +
     (n === 1 ? " elegido" : " elegidos") +
     ' · elige por listas</small></span><span aria-hidden="true">›</span></button>' +
+    '<button class="opt" data-act="class"><span><b>Mi clase</b><small>' +
+    (clase ? "Ranking de " + esc(clase.name) : "Juega con tu clase y mira el ranking") +
+    '</small></span><span aria-hidden="true">›</span></button>' +
     (missN >= 3
       ? '<button class="opt" data-act="practice"><span><b>Repaso de errores</b><small>Practica los ' +
         Math.min(missN, 8) +

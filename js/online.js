@@ -96,7 +96,7 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
     /** Datos públicos de la clase en la que está este navegador, o null. Nunca incluye el secreto. */
     session() {
       const s = store.get("cls", null);
-      return s ? { code: s.code, name: s.name } : null;
+      return s ? { code: s.code, name: s.name, alias: s.alias } : null;
     },
     /** Datos de la clase creada desde este navegador (código y clave de quien la creó), o null. */
     teacherSession() {
@@ -121,8 +121,8 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       if (!r || !UUID.test(r.player_id) || !SECRETO.test(r.player_secret)) throw malaRespuesta();
       if (typeof r.class_name !== "string" || r.class_name.length < 1 || r.class_name.length > 40)
         throw malaRespuesta();
-      store.set("cls", { code: c, name: r.class_name, id: r.player_id, secret: r.player_secret });
-      return { code: c, name: r.class_name };
+      store.set("cls", { code: c, name: r.class_name, alias: a, id: r.player_id, secret: r.player_secret });
+      return { code: c, name: r.class_name, alias: a };
     },
 
     /** Envía una partida terminada. Devuelve los puntos y las estrellas que calcula el servidor. */

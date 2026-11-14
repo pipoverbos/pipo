@@ -58,7 +58,7 @@ npm run format     # aplica Prettier
 Los tests están en `tests/`:
 
 - `unit/`: lógica de verbos (comparación de respuestas, puntuación, formas trampa, estrellas), integridad de los datos de verbos, niveles y listas, y **contraste de los colores** de `css/tokens.css` (WCAG AA, claro y oscuro).
-- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas. Incluyen **accesibilidad**: axe-core sobre todas las pantallas, foco al cambiar de pantalla, juego con teclado y ventana modal.
+- `e2e/`: arrancan el `index.html` real sobre jsdom y juegan como una persona: primera visita, partida completa de los 5 niveles, vidas y reintento, y elección de verbos por listas. Incluyen **accesibilidad**: axe-core sobre todas las pantallas, foco al cambiar de pantalla, juego con teclado y ventana modal. Las clases se prueban con un servidor falso (unirse, ranking, envío de partidas, salir, crear clase).
 
 - `db/`: aplican la migración de `supabase/` sobre PostgreSQL real (PGlite, en memoria) y llaman a las funciones con el rol anónimo, como haría el navegador: tablas cerradas, validación de entradas, puntos calculados por el servidor, ranking y borrado de datos.
 
@@ -88,9 +88,11 @@ Progreso:
 
 - [x] Esquema de base de datos y funciones en [`supabase/migrations/`](supabase/migrations/0001_clases_y_ranking.sql), con tests sobre PostgreSQL real (`tests/db/`).
 - [x] Borrador de [política de privacidad](docs/politica-privacidad-BORRADOR.md) (**sin publicar**: falta revisión experta y decidir la base legal y el consentimiento).
-- [ ] Crear el proyecto en Supabase y aplicar la migración; programar la limpieza por inactividad (`pg_cron`).
-- [ ] Módulo de conexión con `fetch`, pantallas de unirse a una clase y de ranking, y envío de partidas.
-- [ ] Opción en el juego para salir de la clase y borrar los datos propios.
+- [x] Proyecto de Supabase creado (región UE, Fráncfort) y migración aplicada.
+- [ ] Programar la limpieza por inactividad (`pg_cron`).
+- [x] Módulo de conexión [`js/online.js`](js/online.js): solo `fetch`, tiempo límite, mensajes de error en español y respuestas comprobadas antes de usarlas.
+- [x] Pantallas «Mi clase»: unirse con código y apodo, ranking, y crear una clase (código, quitar a un alumno, borrar la clase). La partida se envía al ranking al superar un nivel; si falla, el juego sigue y se puede reintentar.
+- [x] «Salir de la clase y borrar mis datos» desde el ranking.
 
 Modelo de datos: `classes` (código, nombre, hash de la clave del profesor), `players` (clase, apodo único por clase, hash del secreto) y `runs` (jugador, nivel, dificultad, aciertos, errores, estrellas, puntos, fecha). Las tablas están cerradas: el navegador solo llama a siete funciones (`create_class`, `join_class`, `submit_run`, `class_ranking`, `leave_class`, `teacher_remove_player`, `teacher_delete_class`).
 

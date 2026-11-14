@@ -24,7 +24,7 @@ function servidor(...respuestas) {
 }
 const ok = (body) => ({ status: 200, body });
 const fallo = (message) => ({ status: 400, body: { code: "P0001", message } });
-const dentro = () => store.set("cls", { code: "ABC234", name: "1ºA", id: ID, secret: SECRETO });
+const dentro = () => store.set("cls", { code: "ABC234", name: "1ºA", alias: "Pipa", id: ID, secret: SECRETO });
 
 beforeEach(() => {
   store.remove("cls");
@@ -115,11 +115,15 @@ describe("createClass", () => {
 describe("joinClass", () => {
   it("normaliza el código y el apodo, y recuerda la clase sin exponer el secreto", async () => {
     const { cliente, llamadas } = servidor(ok([{ player_id: ID, player_secret: SECRETO, class_name: "1ºA" }]));
-    expect(await cliente.joinClass(" abc 234", "  Pipa   Uno ")).toEqual({ code: "ABC234", name: "1ºA" });
+    expect(await cliente.joinClass(" abc 234", "  Pipa   Uno ")).toEqual({
+      code: "ABC234",
+      name: "1ºA",
+      alias: "Pipa Uno",
+    });
     expect(llamadas[0].body).toEqual({ p_code: "ABC234", p_alias: "Pipa Uno" });
-    expect(cliente.session()).toEqual({ code: "ABC234", name: "1ºA" });
+    expect(cliente.session()).toEqual({ code: "ABC234", name: "1ºA", alias: "Pipa Uno" });
     expect(JSON.stringify(cliente.session())).not.toContain(SECRETO);
-    expect(store.get("cls", null)).toEqual({ code: "ABC234", name: "1ºA", id: ID, secret: SECRETO });
+    expect(store.get("cls", null)).toEqual({ code: "ABC234", name: "1ºA", alias: "Pipa Uno", id: ID, secret: SECRETO });
   });
   it("no llama al servidor con un código o un apodo imposibles", async () => {
     const { cliente, fetchFn } = servidor();
@@ -276,9 +280,11 @@ describe("funciones de quien creó la clase", () => {
 describe("lo guardado en localStorage", () => {
   const put = (k, v) => localStorage.setItem("pipo2." + k, JSON.stringify(v));
   it.each([
-    ["cls", { code: "ABC234", name: "1ºA", id: "no-uuid", secret: SECRETO }],
-    ["cls", { code: "abc234", name: "1ºA", id: ID, secret: SECRETO }],
-    ["cls", { code: "ABC234", name: "", id: ID, secret: SECRETO }],
+    ["cls", { code: "ABC234", name: "1ºA", alias: "Pipa", id: "no-uuid", secret: SECRETO }],
+    ["cls", { code: "abc234", name: "1ºA", alias: "Pipa", id: ID, secret: SECRETO }],
+    ["cls", { code: "ABC234", name: "", alias: "Pipa", id: ID, secret: SECRETO }],
+    ["cls", { code: "ABC234", name: "1ºA", alias: "<b>", id: ID, secret: SECRETO }],
+    ["cls", { code: "ABC234", name: "1ºA", id: ID, secret: SECRETO }],
     ["cls", "texto"],
     ["teach", { code: "ABC234", secret: "corto" }],
     ["teach", [1, 2]],
