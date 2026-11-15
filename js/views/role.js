@@ -9,7 +9,7 @@ export function roleView(v) {
     '<div class="bubble">¡Hola! Soy Pipo. ¿Cómo quieres entrar hoy?</div></div>' +
     '<h2 class="sec">Elige una opción</h2>' +
     '<button class="opt" data-act="student"><span><b>Soy alumno</b><small>Practica solo o juega con tu clase</small></span><span aria-hidden="true">›</span></button>' +
-    '<button class="opt" data-act="profe" disabled><span><b>Soy profesor</b><small>Próximamente: crea clases y mira cómo van</small></span><span aria-hidden="true">›</span></button>' +
-    '<p class="muted small center">Se pregunta cada vez que abres el juego. Si solo quieres practicar, no necesitas cuenta.</p>' +
+    '<button class="opt" data-act="profe"><span><b>Soy profesor</b><small>Crea clases y mira cómo van</small></span><span aria-hidden="true">›</span></button>' +
+    '<p class="muted small center">Se pregunta cada vez que abres el juego. Con tu cuenta guardas tu progreso y juegas desde cualquier dispositivo.</p>' +
     "</section>";
 }

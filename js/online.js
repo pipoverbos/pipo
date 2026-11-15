@@ -27,6 +27,14 @@ export const MENSAJES = {
   demasiado_rapido: "Vas muy rápido. Espera unos segundos y vuelve a intentarlo.",
   sin_codigo_libre: "No he podido crear la clase. Inténtalo otra vez.",
   sin_clase: "No estás en ninguna clase.",
+  usuario_invalido: "El usuario debe tener de 3 a 30 letras, números, puntos o guiones, sin espacios.",
+  contrasena_invalida: "La contraseña debe tener entre 8 y 72 caracteres.",
+  usuario_en_uso: "Ese usuario ya existe. Prueba con otro.",
+  credenciales_invalidas: "El usuario o la contraseña no son correctos.",
+  cuenta_bloqueada: "Demasiados intentos. Espera 15 minutos y vuelve a probar.",
+  sesion_no_valida: "Tu sesión ha caducado. Vuelve a entrar.",
+  rol_no_permitido: "Esa cuenta no puede hacer esto.",
+  rol_invalido: "No he podido crear la cuenta. Inténtalo otra vez.",
   sin_conexion: "No hay conexión. Puedes seguir jugando e intentarlo más tarde.",
   tiempo_agotado: "El servidor tarda demasiado. Inténtalo más tarde.",
   error_servidor: "Algo ha fallado al hablar con el servidor. Inténtalo más tarde.",
@@ -47,6 +55,10 @@ export function cleanCode(s) {
     .toUpperCase();
   return CODIGO.test(c) ? c : null;
 }
+
+const USUARIO = /^[A-Za-z0-9._-]{3,30}$/;
+const CLAVE_RECUPERACION = /^[0-9a-f]{40}$/;
+const ROLES = ["alumno", "profe"];
 
 const esEntero = (n) => Number.isInteger(n) && n >= 0;
 const malaRespuesta = () => new OnlineError("error_servidor");
@@ -92,7 +104,95 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
 
   const primera = (r) => (Array.isArray(r) && r.length === 1 && r[0] && typeof r[0] === "object" ? r[0] : null);
 
+  /** Comprueba usuario y contraseña antes de molestar al servidor. */
+  function credenciales(usuario, clave) {
+    const u = String(usuario ?? "").trim();
+    if (!USUARIO.test(u)) throw new OnlineError("usuario_invalido");
+    const c = String(clave ?? "");
+    if (c.length < 8 || c.length > 72) throw new OnlineError("contrasena_invalida");
+    return u;
+  }
+  const guardarSesion = (token, role, username) => {
+    store.set("acc", { token, role, username });
+    store.set("hadacc", true);
+  };
+
   return {
+    /** La cuenta con la que se ha entrado en este navegador ({role, username}), o null. Nunca incluye la ficha de acceso. */
+    account() {
+      const a = store.get("acc", null);
+      return a ? { role: a.role, username: a.username } : null;
+    },
+
+    /** Crea una cuenta y entra con ella. Devuelve el código de recuperación, que no se vuelve a mostrar. */
+    async register(role, usuario, clave) {
+      if (!ROLES.includes(role)) throw new OnlineError("rol_invalido");
+      const u = credenciales(usuario, clave);
+      const r = primera(await rpc("account_register", { p_role: role, p_username: u, p_password: String(clave) }));
+      if (!r || !SECRETO.test(r.token) || !CLAVE_RECUPERACION.test(r.recovery_code)) throw malaRespuesta();
+      guardarSesion(r.token, role, u);
+      return { recoveryCode: r.recovery_code };
+    },
+
+    /** Entra con usuario y contraseña. Devuelve el rol y si hay que cambiar la contraseña (por ser una temporal). */
+    async login(usuario, clave) {
+      const u = String(usuario ?? "").trim();
+      if (!USUARIO.test(u) || !String(clave ?? "")) throw new OnlineError("credenciales_invalidas");
+      const r = primera(await rpc("account_login", { p_username: u, p_password: String(clave) }));
+      if (!r) throw malaRespuesta();
+      if (r.error) throw new OnlineError(r.error);
+      if (!SECRETO.test(r.token) || !ROLES.includes(r.role) || typeof r.must_change_password !== "boolean")
+        throw malaRespuesta();
+      guardarSesion(r.token, r.role, u);
+      return { role: r.role, mustChange: r.must_change_password };
+    },
+
+    /** Contraseña olvidada: con el código de recuperación se pone una nueva y se entra. Devuelve el código nuevo. */
+    async resetPassword(usuario, codigo, nueva) {
+      const u = credenciales(usuario, nueva);
+      const c = String(codigo ?? "")
+        .toLowerCase()
+        .replace(/[^0-9a-f]/g, "");
+      if (!CLAVE_RECUPERACION.test(c)) throw new OnlineError("credenciales_invalidas");
+      const r = primera(
+        await rpc("account_reset_password", { p_username: u, p_recovery_code: c, p_new_password: String(nueva) })
+      );
+      if (!r) throw malaRespuesta();
+      if (r.error) throw new OnlineError(r.error);
+      if (!SECRETO.test(r.token) || !CLAVE_RECUPERACION.test(r.recovery_code) || !ROLES.includes(r.role))
+        throw malaRespuesta();
+      guardarSesion(r.token, r.role, u);
+      return { role: r.role, recoveryCode: r.recovery_code };
+    },
+
+    /** Cambia la contraseña conociendo la actual (obligatorio tras una contraseña temporal). */
+    async changePassword(actual, nueva) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      const n = String(nueva ?? "");
+      if (n.length < 8 || n.length > 72) throw new OnlineError("contrasena_invalida");
+      try {
+        const ok = await rpc("account_change_password", { p_token: a.token, p_old: String(actual ?? ""), p_new: n });
+        if (ok !== true) throw malaRespuesta();
+      } catch (e) {
+        if (e.code === "sesion_no_valida") store.remove("acc");
+        throw e;
+      }
+      return true;
+    },
+
+    /** Cierra la sesión. Aunque no haya conexión, en este navegador se cierra siempre. */
+    async logout() {
+      const a = store.get("acc", null);
+      store.remove("acc");
+      if (!a) return;
+      try {
+        await rpc("account_logout", { p_token: a.token });
+      } catch {
+        /* sin conexión: la sesión del servidor caducará sola */
+      }
+    },
+
     /** Datos públicos de la clase en la que está este navegador, o null. Nunca incluye el secreto. */
     session() {
       const s = store.get("cls", null);

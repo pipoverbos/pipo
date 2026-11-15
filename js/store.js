@@ -58,7 +58,18 @@ function limpiarProfe(v) {
   return CODIGO.test(code) && SECRETO.test(secret) ? { code, secret } : undefined;
 }
 
+/** Sesión de la cuenta: ficha de acceso (32 hex), rol y usuario. La ficha solo vive en este navegador. */
+function limpiarCuenta(v) {
+  if (v === null || typeof v !== "object") return undefined;
+  const { token, role, username } = v;
+  if (!SECRETO.test(token) || !["alumno", "profe"].includes(role)) return undefined;
+  if (typeof username !== "string" || !/^[A-Za-z0-9._-]{3,30}$/.test(username)) return undefined;
+  return { token, role, username };
+}
+
 export const SCHEMA = {
+  acc: limpiarCuenta,
+  hadacc: esBool,
   cls: limpiarClase,
   teach: limpiarProfe,
   seen: esBool,
