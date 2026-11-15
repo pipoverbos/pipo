@@ -19,10 +19,13 @@ const mostrar =
 
 export function authView(v) {
   const profe = S.authRole === "profe",
-    nueva = S.authMode === "register";
+    nueva = S.authMode === "register",
+    aviso = S.aviso;
+  S.aviso = "";
   v.innerHTML =
     '<section class="cls">' +
     cabecera(profe ? "Soy profesor" : "Soy alumno", "authback") +
+    (aviso ? '<p class="err" role="alert">' + esc(aviso) + "</p>" : "") +
     '<div class="seg" role="group" aria-label="Entrar o crear cuenta">' +
     ["login", "register"]
       .map(
@@ -134,12 +137,19 @@ export function recoveryView(v) {
 }
 
 export function changePassView(v) {
+  const desdeCuenta = S.cpVolver;
   v.innerHTML =
     '<section class="cls">' +
-    '<div class="top"><h1>Elige tu contraseña</h1></div>' +
-    "<p>Entraste con una contraseña temporal. Escribe una nueva que solo sepas tú.</p>" +
+    (desdeCuenta
+      ? cabecera("Cambiar contraseña", "myaccount")
+      : '<div class="top"><h1>Elige tu contraseña</h1></div>') +
+    (desdeCuenta
+      ? "<p>Escribe tu contraseña de ahora y la nueva.</p>"
+      : "<p>Entraste con una contraseña temporal. Escribe una nueva que solo sepas tú.</p>") +
     '<div class="card mt">' +
-    '<label class="lbl" for="cp-old">Contraseña temporal</label>' +
+    '<label class="lbl" for="cp-old">' +
+    (desdeCuenta ? "Contraseña de ahora" : "Contraseña temporal") +
+    "</label>" +
     '<input class="field" id="cp-old" type="password" maxlength="72" autocomplete="current-password" aria-describedby="cp-old-err">' +
     '<p class="err" id="cp-old-err" role="alert"></p>' +
     '<label class="lbl" for="cp-new">Contraseña nueva</label>' +
@@ -162,6 +172,25 @@ export function profView(v) {
     "<p>Sesión de <b>" +
     esc(a ? a.username : "") +
     '</b>.</p><div class="card mt note">Próximamente: aquí verás y crearás tus clases, elegirás qué verbos y dificultades pueden jugar tus alumnos y verás cómo les va.</div>' +
+    '<div class="row center mt"><button class="btn" data-act="myaccount">Mi cuenta</button></div>' +
     '<div class="teachbox"><button class="btn" data-act="logout">Cerrar sesión</button></div>' +
+    "</section>";
+}
+
+/** Mi cuenta: usuario, cambiar la contraseña, cerrar sesión y borrar la cuenta (con todos sus datos). */
+export function myAccountView(v) {
+  const a = online.account();
+  if (!a) return;
+  v.innerHTML =
+    '<section class="cls">' +
+    cabecera("Mi cuenta", "accountback") +
+    '<div class="card mt"><p class="muted">Usuario</p><p><b>' +
+    esc(a.username) +
+    '</b></p><p class="muted small">' +
+    (a.role === "profe" ? "Cuenta de profesor" : "Cuenta de alumno") +
+    ". Solo tú lo ves: en las clases se usa tu apodo.</p></div>" +
+    '<div class="row center mt"><button class="btn" data-act="changepassopen">Cambiar contraseña</button></div>' +
+    '<div class="row center mt"><button class="btn" data-act="logout">Cerrar sesión</button></div>' +
+    '<div class="teachbox"><button class="linkbtn" data-act="accountdelask">Borrar mi cuenta y todos mis datos</button></div>' +
     "</section>";
 }

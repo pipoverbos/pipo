@@ -11,7 +11,7 @@ import { pipo } from "./ui/pipo.js";
 import { starsHTML } from "./ui/icons.js";
 import { modal } from "./ui/modal.js";
 import { go } from "./router.js";
-import { enClase, datosDePartida, sendRun } from "./classes.js";
+import { enClase, tipoDeClase, datosDePartida, sendRun } from "./classes.js";
 import { say, renderHud, renderPlay, shakeSlot } from "./views/game.js";
 
 export function cfgFor(i) {
@@ -75,6 +75,7 @@ export function newLevel(cfg, idx, rows, keep) {
     done: false,
     dead: false,
     failed: {},
+    missed: [],
     total: 0,
     last: null,
   });
@@ -166,6 +167,7 @@ export function fail(row, msg, key) {
   R.streak = 0;
   R.mis++;
   R.failed[row[0]] = 1;
+  R.missed.push(row[0]);
   addMiss(row[0]);
   if (R.lives <= 0) {
     R.dead = true;
@@ -281,7 +283,7 @@ export function finish() {
       "</div>"
   );
   say(title, "cheer");
-  if (enviar) sendRun(datosDePartida(R, store.get("diff", "normal")));
+  if (enviar) sendRun(datosDePartida(R, store.get("diff", "normal"), tipoDeClase()));
 }
 export function showDead() {
   modal(

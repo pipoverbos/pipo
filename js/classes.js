@@ -5,6 +5,7 @@ import { $, esc } from "./utils.js";
 import { S } from "./state.js";
 import { online } from "./online.js";
 import { go, render } from "./router.js";
+import { sesionCaducada } from "./account.js";
 import { modal, closeModal } from "./ui/modal.js";
 
 const setErr = (id, msg, field) => {
@@ -62,6 +63,7 @@ export async function joinSubmit() {
     go("rank");
     loadRank();
   } catch (e) {
+    if (sesionCaducada(e)) return;
     if (S.screen !== "join") return;
     btn.disabled = false;
     if (ERRORES_DE_APODO.includes(e.code)) {
@@ -95,6 +97,7 @@ export async function leaveDo() {
   try {
     await online.leaveClass();
   } catch (e) {
+    if (sesionCaducada(e)) return closeModal();
     setErr("leave-err", e.message);
     return;
   }
@@ -115,6 +118,7 @@ export async function challengeCreate() {
   try {
     await online.createChallenge(name.value, nick.value);
   } catch (e) {
+    if (sesionCaducada(e)) return;
     if (S.screen !== "challenge") return;
     btn.disabled = false;
     if (e.code === "nombre_invalido") {
@@ -134,7 +138,7 @@ const avisar = (m) => {
   if (e) e.textContent = m;
 };
 export async function challengeCopy() {
-  const t = online.challengeOwner();
+  const t = online.session();
   if (!t) return;
   try {
     await navigator.clipboard.writeText(t.code);
@@ -144,7 +148,7 @@ export async function challengeCopy() {
   }
 }
 export async function challengeShare() {
-  const t = online.challengeOwner();
+  const t = online.session();
   if (!t || !navigator.share) return;
   try {
     await navigator.share({
@@ -169,6 +173,7 @@ export async function challengeDel() {
   try {
     await online.deleteChallenge();
   } catch (e) {
+    if (sesionCaducada(e)) return closeModal();
     setErr("del-err", e.message);
     return;
   }
@@ -181,18 +186,24 @@ export async function challengeDel() {
 let ultima = null;
 let envio = 0;
 
+/** Tipo de la clase en la que está esta cuenta ("aula" o "reto"), o undefined. */
+export const tipoDeClase = () => (online.session() || {}).kind;
+
 /** ¿Hay que enviar las partidas de este navegador a una clase? */
 export function enClase() {
   return online.session() !== null;
 }
 
 /** Los datos de una partida acabada. Los puntos y las estrellas los calcula el servidor. */
-export function datosDePartida(R, difficulty) {
+export function datosDePartida(R, difficulty, kind) {
   const correct = Math.min(Math.max(R.total, 1), 200);
   // El servidor no admite más de 4 + aciertos/10 errores en una partida. Con las vidas que se acumulan entre
   // niveles se podría superar, y a partir de 3 errores la nota ya es 1 estrella, así que recortar no cambia nada.
   const mistakes = Math.min(R.mis, 4 + Math.floor(correct / 10));
-  return { level: R.idx, difficulty, correct, mistakes };
+  const run = { level: R.idx, difficulty, correct, mistakes };
+  // Los verbos fallados solo se mandan en las clases de aula (para el seguimiento del profesor), nunca en los retos.
+  if (kind === "aula") run.misses = (R.missed || []).slice(0, mistakes);
+  return run;
 }
 
 const dentro = (id, html) => {
@@ -226,6 +237,9 @@ export async function sendRun(run = ultima) {
     ultima = null;
     dentro(id, html);
   } catch (e) {
+    if (e.code === "sesion_no_valida") {
+      return dentro(id, "<b>No he podido enviar tu partida al ranking.</b> " + esc(e.message));
+    }
     const sigue = online.session() !== null;
     dentro(
       id,

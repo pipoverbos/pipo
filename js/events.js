@@ -1,6 +1,7 @@
 // Eventos globales (delegación): clics, teclado, escritura y arrastrar y soltar.
 import { $, cleanAlias, validAlias } from "./utils.js";
 import { store } from "./store.js";
+import { online } from "./online.js";
 import { S, R, setR } from "./state.js";
 import { selSet, selV, saveSel, unlocked, listInfs } from "./verbs.js";
 import { BASE } from "./data/base-verbs.js";
@@ -21,6 +22,9 @@ import {
   recoveryOk,
   recoveryContinue,
   changePassSubmit,
+  changePassOpen,
+  accountDeleteAsk,
+  accountDelete,
   logout,
 } from "./account.js";
 import {
@@ -131,6 +135,22 @@ export function initEvents() {
         break;
       case "logout":
         logout();
+        break;
+      case "myaccount":
+        S.cpVolver = false;
+        go("myaccount");
+        break;
+      case "accountback":
+        go(online.account() && online.account().role === "profe" ? "prof" : "home");
+        break;
+      case "changepassopen":
+        changePassOpen();
+        break;
+      case "accountdelask":
+        accountDeleteAsk();
+        break;
+      case "accountdel":
+        accountDelete();
         break;
       case "home":
         closeModal();

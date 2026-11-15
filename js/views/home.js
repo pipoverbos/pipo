@@ -72,6 +72,7 @@ export function homeView(v) {
         '</small></span><span aria-hidden="true">›</span></button>'
       : '<button class="opt" data-act="class"><span><b>Unirme a una clase</b><small>Con el código que te dio tu profe</small></span><span aria-hidden="true">›</span></button>' +
         '<button class="opt" data-act="challenge"><span><b>Reta a tus amigos</b><small>Crea tu propio ranking y pasa el código</small></span><span aria-hidden="true">›</span></button>') +
+    '<button class="opt" data-act="myaccount"><span><b>Mi cuenta</b><small>Contraseña y datos</small></span><span aria-hidden="true">›</span></button>' +
     (missN >= 3
       ? '<button class="opt" data-act="practice"><span><b>Repaso de errores</b><small>Practica los ' +
         Math.min(missN, 8) +

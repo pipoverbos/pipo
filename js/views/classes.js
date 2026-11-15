@@ -43,7 +43,7 @@ export function rankView(v) {
   const r = S.rank;
   if (!r) return;
   const yo = (online.session() || {}).alias,
-    dueno = online.challengeOwner();
+    dueno = online.session();
   const filas = r.rows
     .map(function (f, i) {
       const soy = r.mine && yo && f.alias.toLowerCase() === yo.toLowerCase();
@@ -84,7 +84,7 @@ export function rankView(v) {
     '<p class="muted small center">Cuenta la mejor partida de cada nivel y dificultad. Repetir un nivel solo sube tu marca si lo haces mejor.</p>' +
     (r.mine
       ? '<div class="teachbox"><button class="linkbtn" data-act="leaveask">Salir de la clase y borrar mis datos</button>' +
-        (dueno && dueno.code === r.code
+        (dueno && dueno.isOwner && dueno.code === r.code
           ? '<button class="linkbtn" data-act="challengedelask">Borrar este reto para todos</button>'
           : "") +
         "</div>"
@@ -116,9 +116,8 @@ export function challengeView(v) {
 }
 
 export function challengeDoneView(v) {
-  const s = online.session(),
-    t = online.challengeOwner();
-  if (!s || !t) {
+  const s = online.session();
+  if (!s || !s.isOwner) {
     v.innerHTML = '<section class="cls">' + cabecera("Reta a tus amigos", "home") + "</section>";
     return;
   }
@@ -131,9 +130,9 @@ export function challengeDoneView(v) {
     esc(s.alias) +
     '</b>.</p><div class="card mt center"><p class="muted">Pasa este código a tus amigos</p>' +
     '<p class="codebig" aria-label="' +
-    esc(t.code.split("").join(" ")) +
+    esc(s.code.split("").join(" ")) +
     '">' +
-    esc(t.code) +
+    esc(s.code) +
     '</p><div class="row center"><button class="btn small" data-act="challengecopy">Copiar código</button>' +
     (navigator.share ? '<button class="btn small" data-act="challengeshare">Compartir</button>' : "") +
     '</div><p class="muted small" id="ch-msg" role="status"></p>' +
