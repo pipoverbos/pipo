@@ -12,6 +12,18 @@ import { refreshVerbs } from "./views/verbs.js";
 import { say, renderPlay } from "./views/game.js";
 import { startLevel, startPractice, place, check } from "./game.js";
 import {
+  entrarComo,
+  authMode,
+  authSubmit,
+  forgotSubmit,
+  showPassword,
+  recoveryCopy,
+  recoveryOk,
+  recoveryContinue,
+  changePassSubmit,
+  logout,
+} from "./account.js";
+import {
   openClass,
   loadRank,
   joinSubmit,
@@ -80,17 +92,45 @@ export function initEvents() {
         S.meet = Math.max(0, S.meet - 1);
         render();
         break;
-      case "role":
-        closeModal();
-        setR(null);
+      case "student":
+        entrarComo("alumno");
+        break;
+      case "profe":
+        entrarComo("profe");
+        break;
+      case "authmode":
+        authMode(a.dataset.m);
+        break;
+      case "authback":
         S.role = null;
         go("role");
         break;
-      case "student":
-        S.role = "alumno";
-        S.meet = 0;
-        // Sin apodo no se juega: también quien ya vio la presentación pasa por ella.
-        go(store.get("seen", false) && validAlias(store.get("name", "")) ? "home" : "meet");
+      case "authsubmit":
+        authSubmit();
+        break;
+      case "forgot":
+        go("forgot");
+        break;
+      case "forgotsubmit":
+        forgotSubmit();
+        break;
+      case "showpw":
+        showPassword(a.checked);
+        break;
+      case "recok":
+        recoveryOk(a.checked);
+        break;
+      case "reccopy":
+        recoveryCopy();
+        break;
+      case "reccontinue":
+        recoveryContinue();
+        break;
+      case "changepasssubmit":
+        changePassSubmit();
+        break;
+      case "logout":
+        logout();
         break;
       case "home":
         closeModal();
@@ -215,7 +255,19 @@ export function initEvents() {
       $('[data-act="meetnext"]').click();
     }
     // Intro en los campos de las clases: es lo mismo que pulsar su botón.
-    var enter = { cc: "joinclass", cn: "joinclass", rn: "challengemake", ra: "challengemake" }[e.target.id];
+    var enter = {
+      cc: "joinclass",
+      cn: "joinclass",
+      rn: "challengemake",
+      ra: "challengemake",
+      au: "authsubmit",
+      ap: "authsubmit",
+      fu: "forgotsubmit",
+      fc: "forgotsubmit",
+      fn: "forgotsubmit",
+      "cp-old": "changepasssubmit",
+      "cp-new": "changepasssubmit",
+    }[e.target.id];
     if (e.key === "Enter" && enter) {
       e.preventDefault();
       $('[data-act="' + enter + '"]').click();

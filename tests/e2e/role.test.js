@@ -13,25 +13,19 @@ describe("elección de rol", () => {
     expect($(".home")).toBeNull();
   });
 
-  it("«Soy profesor» aún no está disponible y no se puede pulsar", () => {
-    expect($('[data-act="profe"]').disabled).toBe(true);
+  it("«Soy profesor» está disponible", () => {
+    expect($('[data-act="profe"]').disabled).toBe(false);
   });
 
-  it("«Soy alumno» lleva al inicio de siempre", () => {
+  it("«Soy alumno» con la sesión abierta lleva al inicio de siempre", () => {
     act("student");
     expect(titulo()).toBe("Pipo y los verbos irregulares");
     expect($(".home")).not.toBeNull();
   });
 
-  it("«Cambiar de rol» vuelve a preguntar, y se puede cambiar cuantas veces se quiera", () => {
-    act("role");
-    expect($(".role")).not.toBeNull();
-    act("student");
-    expect($(".home")).not.toBeNull();
-  });
-
-  it("en el inicio ya no está «Conoce a Pipo»", () => {
+  it("en el inicio ya no está «Conoce a Pipo» ni «Cambiar de rol»: hay «Cerrar sesión»", () => {
     expect($('[data-act="meetpipo"]')).toBeNull();
-    expect($('[data-act="role"]').textContent).toBe("Cambiar de rol");
+    expect($('[data-act="role"]')).toBeNull();
+    expect($('[data-act="logout"]').textContent).toBe("Cerrar sesión");
   });
 });

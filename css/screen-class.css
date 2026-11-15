@@ -155,3 +155,33 @@
 .role > .muted {
   margin-top: 18px;
 }
+.pwchk {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  font-size: 16px;
+}
+.pwchk input {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  accent-color: var(--ink);
+}
+.reccode {
+  margin: 8px 0;
+  padding: 12px 8px;
+  border: 2px dashed var(--ink);
+  border-radius: 14px;
+  background: var(--h3);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 19px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  white-space: pre-line;
+  text-align: center;
+}
+.note.warn {
+  background: #ffd9d2;
+}

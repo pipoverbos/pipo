@@ -89,6 +89,6 @@ export function homeView(v) {
     '">' +
     (store.get("sound", true) ? ICON.sound : ICON.mute) +
     "</button>" +
-    '<button class="btn small" data-act="role">Cambiar de rol</button></div></div></div></div></section>';
+    '<button class="btn small" data-act="logout">Cerrar sesión</button></div></div></div></div></section>';
   v.innerHTML = h;
 }

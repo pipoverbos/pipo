@@ -6,13 +6,16 @@ import { BASE } from "../../js/data/base-verbs.js";
 
 /**
  * Arranca el juego con el HTML real de index.html. Cada archivo de test se ejecuta aislado y llama a boot() una vez.
- * Por defecto entra como alumno (la primera pantalla pregunta el rol); con `role: false` se queda en esa pantalla.
+ * Por defecto entra como alumno con una sesión ya abierta (la primera pantalla pregunta el rol). Con `role: false`
+ * se queda en esa pantalla, y con `account: false` no hay sesión abierta.
  */
-export async function boot({ seen = true, storage = {}, role = true } = {}) {
+export const SESION = { token: "0123456789abcdef0123456789abcdef", role: "alumno", username: "pipa" };
+export async function boot({ seen = true, storage = {}, role = true, account = true } = {}) {
   localStorage.clear();
   localStorage.setItem("pipo2.seen", JSON.stringify(seen));
   // Quien ya vio la presentación tiene apodo (sin él, el juego vuelve a pedirlo): se pone uno salvo que el test diga otro.
   if (seen && !("name" in storage)) localStorage.setItem("pipo2.name", JSON.stringify("Pipa"));
+  if (account && !("acc" in storage)) localStorage.setItem("pipo2.acc", JSON.stringify(SESION));
   for (const [k, v] of Object.entries(storage)) localStorage.setItem("pipo2." + k, JSON.stringify(v));
   const html = fs.readFileSync(path.resolve(import.meta.dirname, "../../index.html"), "utf8");
   document.body.innerHTML = html.match(/<body>([\s\S]*)<\/body>/)[1].replace(/<script[\s\S]*?<\/script>/g, "");

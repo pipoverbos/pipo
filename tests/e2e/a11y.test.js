@@ -2,7 +2,7 @@
 // El contraste de color no se puede medir en jsdom (no hay layout): lo cubre tests/unit/contrast.test.js.
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import axe from "axe-core";
-import { $, act, boot, solve } from "../helpers/app.js";
+import { $, act, boot, SESION, solve } from "../helpers/app.js";
 import { store } from "../../js/store.js";
 
 // axe prueba un <canvas> para detectar ligaduras de iconos; jsdom no lo implementa y avisa por consola.
@@ -18,6 +18,7 @@ async function audit() {
 
 describe("accesibilidad (axe-core)", () => {
   beforeAll(async () => {
+    vi.stubGlobal("fetch", async () => ({ status: 200, text: async () => "true" }));
     await boot();
     vi.useRealTimers(); // axe usa setTimeout por dentro: con temporizadores falsos nunca termina
   });
@@ -68,9 +69,11 @@ describe("accesibilidad: primera visita", () => {
   it("presentación de Pipo (3 pasos)", async () => {
     act("map"); // cierra la ventana final
     act("home");
-    act("role");
-    expect(await audit(), "elección de rol").toEqual([]);
     store.set("name", ""); // sin apodo, «Soy alumno» pasa por la presentación
+    act("logout");
+    await new Promise((r) => setTimeout(r, 20));
+    expect(await audit(), "elección de rol").toEqual([]);
+    store.set("acc", SESION);
     act("student");
     for (let step = 0; step < 3; step++) {
       expect(await audit(), `paso ${step + 1}`).toEqual([]);
