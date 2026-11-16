@@ -30,4 +30,15 @@ describe("datosDePartida", () => {
     expect(datosDePartida({ idx: 0, total: 0, mis: 0 }, "easy").correct).toBe(1);
     expect(datosDePartida({ idx: 0, total: 999, mis: 0 }, "easy").correct).toBe(200);
   });
+  it("en las clases de aula manda los verbos fallados, sin pasarse de los errores que cuenta", () => {
+    const R = { idx: 0, total: 24, mis: 3, missed: ["go", "be", "go"] };
+    expect(datosDePartida(R, "normal", "aula").misses).toEqual(["go", "be", "go"]);
+    expect(datosDePartida({ ...R, mis: 9, missed: Array(9).fill("go") }, "normal", "aula").misses).toHaveLength(
+      topeServidor(24)
+    );
+  });
+  it("en los retos y sin clase NUNCA manda los verbos fallados", () => {
+    const R = { idx: 0, total: 24, mis: 3, missed: ["go", "be", "go"] };
+    for (const kind of ["reto", undefined]) expect(datosDePartida(R, "normal", kind)).not.toHaveProperty("misses");
+  });
 });

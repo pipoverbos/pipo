@@ -1,12 +1,7 @@
-// Clases y ranking de punta a punta: el juego real sobre jsdom, con un servidor falso en lugar de Supabase.
-// Es un recorrido seguido (unirse, jugar, ranking, salir, crear clase), así que los tests dependen del orden.
+// Clases, retos y ranking de punta a punta con la cuenta: el juego real sobre jsdom, con un servidor falso.
+// Es un recorrido seguido (unirse, jugar, ranking, salir, retos), así que los tests dependen del orden.
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { $, $$, act, boot, click, solve, stored, type } from "../helpers/app.js";
-import { store } from "../../js/store.js";
-
-const ID = "123e4567-e89b-42d3-a456-426614174000";
-const SECRETO = "0123456789abcdef0123456789abcdef";
-const PROFE = "fedcba9876543210fedcba9876543210";
+import { $, $$, act, boot, click, makeMistake, SESION, solve, stored, type } from "../helpers/app.js";
 
 // ---- servidor falso ----
 const llamadas = [];
@@ -42,6 +37,14 @@ const FILAS = [
   { alias: "Pipa", points: 540, levels: 2 },
   { alias: "<img src=x onerror=alert(1)>", points: 100, levels: 1 },
 ];
+const AULA = {
+  class_name: "1º A de ESO",
+  alias: "Pipa",
+  kind: "aula",
+  allowed_lists: [1, 2, 3, 4, 5, 6],
+  allowed_difficulties: ["easy", "normal", "hard"],
+};
+const CLASE = { code: "ABC234", name: "1º A de ESO", alias: "Pipa", kind: "aula", owner: false };
 
 describe("unirse a una clase", () => {
   it("«Unirme a una clase» en el inicio lleva a la pantalla de unirse, con el apodo ya puesto", () => {
@@ -57,22 +60,22 @@ describe("unirse a una clase", () => {
     expect($("#cc-err").textContent).toMatch(/6 letras o números/);
     expect($("#cc").getAttribute("aria-invalid")).toBe("true");
     expect(document.activeElement).toBe($("#cc"));
-    expect(llamadas).toHaveLength(0);
+    expect(llamadasA("alu_join_class")).toHaveLength(0);
   });
 
   it("un apodo repetido se avisa en el campo del apodo", async () => {
-    respuestas.join_class = () => fallo("apodo_en_uso");
+    respuestas.alu_join_class = () => fallo("apodo_en_uso");
     type("#cc", "abc 234");
     act("joinclass");
     await flush();
-    expect(llamadasA("join_class")[0].body).toEqual({ p_code: "ABC234", p_alias: "Pipa" });
+    expect(llamadasA("alu_join_class")[0].body).toEqual({ p_token: SESION.token, p_code: "ABC234", p_alias: "Pipa" });
     expect($("#cn-err").textContent).toMatch(/ya lo usa otra persona/);
     expect(document.activeElement).toBe($("#cn"));
     expect($('[data-act="joinclass"]').disabled).toBe(false);
   });
 
   it("un fallo de conexión se avisa debajo del botón y se puede reintentar", async () => {
-    respuestas.join_class = () => new TypeError("Failed to fetch");
+    respuestas.alu_join_class = () => new TypeError("Failed to fetch");
     act("joinclass");
     await flush();
     expect($("#join-err").textContent).toMatch(/No hay conexión/);
@@ -80,13 +83,24 @@ describe("unirse a una clase", () => {
     expect(stored("cls")).toBeNull();
   });
 
-  it("al unirse pasa al ranking y recuerda la clase", async () => {
-    respuestas.join_class = () => ok([{ player_id: ID, player_secret: SECRETO, class_name: "1º A de ESO" }]);
+  it("si ya está en una clase (desde otro dispositivo), lo dice debajo del botón", async () => {
+    respuestas.alu_join_class = () => fallo("ya_en_clase");
+    act("joinclass");
+    await flush();
+    expect($("#join-err").textContent).toMatch(/Ya estás en una clase/);
+  });
+
+  it("al unirse pasa al ranking y recuerda la clase con sus ajustes, sin guardar ningún secreto", async () => {
+    respuestas.alu_join_class = () => ok([AULA]);
     respuestas.class_ranking = () => ok(FILAS);
     act("joinclass");
     await flush();
     expect(titulo()).toBe("Ranking");
-    expect(stored("cls")).toEqual({ code: "ABC234", name: "1º A de ESO", alias: "Pipa", id: ID, secret: SECRETO });
+    expect(stored("cls")).toEqual({
+      ...CLASE,
+      lists: [1, 2, 3, 4, 5, 6],
+      diffs: ["easy", "normal", "hard"],
+    });
     expect($(".rankhead").textContent).toContain("1º A de ESO");
     expect($(".rankhead").textContent).toContain("3 jugadores");
   });
@@ -127,50 +141,85 @@ describe("ranking", () => {
 });
 
 describe("enviar partidas", () => {
-  it("al superar un nivel se envía al servidor y se enseñan los puntos y el puesto", async () => {
-    respuestas.submit_run = () => ok([{ points: 340, stars: 3 }]);
+  it("al superar un nivel se envía con la sesión y se enseñan los puntos y el puesto", async () => {
+    respuestas.alu_submit_run = () => ok([{ points: 340, stars: 3 }]);
     respuestas.class_ranking = () => ok(FILAS);
     act("play");
     act("level", '[data-i="0"]');
     const huecos = $$("td[data-slot]").length;
     solve();
     await flush();
-    expect(llamadasA("submit_run")).toHaveLength(1);
-    expect(llamadasA("submit_run")[0].body).toEqual({
-      p_player: ID,
-      p_secret: SECRETO,
+    expect(llamadasA("alu_submit_run")).toHaveLength(1);
+    expect(llamadasA("alu_submit_run")[0].body).toEqual({
+      p_token: SESION.token,
       p_level: 0,
       p_difficulty: "normal",
       p_correct: huecos,
       p_mistakes: 0,
+      p_misses: [], // en las clases de aula se mandan los verbos fallados (aquí, ninguno)
     });
     expect($("#rank-msg").textContent).toContain("+340 puntos");
     expect($("#rank-msg").textContent).toContain("nº 2");
   });
 
+  it("en una clase de aula manda los verbos que se han fallado", async () => {
+    act("next");
+    makeMistake();
+    makeMistake();
+    solve();
+    await flush();
+    const run = llamadasA("alu_submit_run").at(-1).body;
+    expect(run.p_mistakes).toBe(2);
+    expect(run.p_misses).toHaveLength(2);
+    expect(run.p_misses.every((v) => /^[a-z][a-z '-]{0,29}$/.test(v))).toBe(true);
+  });
+
   it("si falla el envío, avisa sin bloquear el juego y permite reintentar", async () => {
-    respuestas.submit_run = () => new TypeError("Failed to fetch");
+    respuestas.alu_submit_run = () => new TypeError("Failed to fetch");
     act("next");
     solve();
     await flush();
     expect($("#rank-msg").textContent).toMatch(/No he podido enviar tu partida/);
     expect($('[data-act="next"]')).not.toBeNull(); // se puede seguir jugando
-    respuestas.submit_run = () => ok([{ points: 200, stars: 3 }]);
+    respuestas.alu_submit_run = () => ok([{ points: 200, stars: 3 }]);
     act("resendrun");
     await flush();
     expect($("#rank-msg").textContent).toContain("+200 puntos");
-    expect(llamadasA("submit_run")).toHaveLength(3);
-    expect(llamadasA("submit_run")[2].body.p_level).toBe(1);
+    expect(llamadasA("alu_submit_run")).toHaveLength(4);
+    expect(llamadasA("alu_submit_run")[3].body.p_level).toBe(2);
   });
 
-  it("si el servidor ya no nos conoce, la clase se olvida y no ofrece reintentar", async () => {
-    respuestas.submit_run = () => fallo("jugador_no_valido");
+  it("si el servidor ya no nos tiene en ninguna clase, se olvida y no ofrece reintentar", async () => {
+    respuestas.alu_submit_run = () => fallo("sin_clase");
     act("next");
     solve();
     await flush();
-    expect($("#rank-msg").textContent).toMatch(/Ya no formas parte de esa clase/);
+    expect($("#rank-msg").textContent).toMatch(/No estás en ninguna clase/);
     expect($('[data-act="resendrun"]')).toBeNull();
     expect(stored("cls")).toBeNull();
+    act("map");
+    act("home");
+  });
+
+  it("si la sesión ha caducado, lo dice sin ofrecer reintentar y olvida la cuenta", async () => {
+    // se vuelve a entrar en una clase para poder enviar
+    respuestas.alu_join_class = () => ok([AULA]);
+    act("class");
+    type("#cc", "ABC234");
+    act("joinclass");
+    await flush();
+    act("home");
+    respuestas.alu_submit_run = () => fallo("sesion_no_valida");
+    act("play");
+    act("level", '[data-i="0"]');
+    solve();
+    await flush();
+    expect($("#rank-msg").textContent).toMatch(/Tu sesión ha caducado/);
+    expect($('[data-act="resendrun"]')).toBeNull();
+    expect(stored("acc")).toBeNull();
+    expect(stored("cls")).toBeNull();
+    // se recupera la sesión para los siguientes tests
+    localStorage.setItem("pipo2.acc", JSON.stringify(SESION));
     act("map");
     act("home");
   });
@@ -178,7 +227,7 @@ describe("enviar partidas", () => {
 
 describe("salir de la clase", () => {
   beforeAll(async () => {
-    respuestas.join_class = () => ok([{ player_id: ID, player_secret: SECRETO, class_name: "1º A de ESO" }]);
+    respuestas.alu_join_class = () => ok([AULA]);
     act("class");
     type("#cc", "ABC234");
     act("joinclass");
@@ -193,11 +242,11 @@ describe("salir de la clase", () => {
     escape();
     expect($("#modal .modal")).toBeNull();
     expect(stored("cls")).not.toBeNull();
-    expect(llamadasA("leave_class")).toHaveLength(0);
+    expect(llamadasA("alu_leave_class")).toHaveLength(0);
   });
 
   it("sin conexión no borra nada y lo dice dentro de la ventana", async () => {
-    respuestas.leave_class = () => new TypeError("Failed to fetch");
+    respuestas.alu_leave_class = () => new TypeError("Failed to fetch");
     act("leaveask");
     act("leavedo");
     await flush();
@@ -205,11 +254,11 @@ describe("salir de la clase", () => {
     expect(stored("cls")).not.toBeNull();
   });
 
-  it("al confirmar, borra en el servidor, olvida la clase y vuelve al inicio", async () => {
-    respuestas.leave_class = () => ok(true);
+  it("al confirmar, sale en el servidor, olvida la clase y vuelve al inicio", async () => {
+    respuestas.alu_leave_class = () => ok(true);
     act("leavedo");
     await flush();
-    expect(llamadasA("leave_class").at(-1).body).toEqual({ p_player: ID, p_secret: SECRETO });
+    expect(llamadasA("alu_leave_class").at(-1).body).toEqual({ p_token: SESION.token });
     expect(stored("cls")).toBeNull();
     expect($("#modal .modal")).toBeNull();
     expect(titulo()).toBe("Pipo y los verbos irregulares");
@@ -226,7 +275,7 @@ describe("Reta a tus amigos", () => {
   });
 
   it("el nombre y el apodo son obligatorios y se avisa en cada campo", async () => {
-    respuestas.create_challenge = () => fallo("nombre_invalido");
+    respuestas.alu_create_challenge = () => fallo("nombre_invalido");
     act("challengemake");
     await flush();
     expect($("#rn-err").textContent).toMatch(/nombre de la clase/);
@@ -237,11 +286,11 @@ describe("Reta a tus amigos", () => {
     expect($("#ra-err").textContent).toMatch(/2 a 20 letras/);
     expect(document.activeElement).toBe($("#ra"));
     expect($('[data-act="challengemake"]').disabled).toBe(false);
-    expect(stored("teach")).toBeNull();
+    expect(stored("cls")).toBeNull();
   });
 
   it("un fallo de conexión se avisa debajo del botón y no se crea nada", async () => {
-    respuestas.create_challenge = () => new TypeError("Failed to fetch");
+    respuestas.alu_create_challenge = () => new TypeError("Failed to fetch");
     type("#rn", "Los de 1º B");
     type("#ra", "Pipa");
     act("challengemake");
@@ -250,16 +299,34 @@ describe("Reta a tus amigos", () => {
     expect(stored("cls")).toBeNull();
   });
 
-  it("al crearlo enseña el código, entra en él y recuerda la clave de quien lo crea", async () => {
-    respuestas.create_challenge = () =>
-      ok([{ code: "DEF567", teacher_secret: PROFE, player_id: ID, player_secret: SECRETO, class_name: "Los de 1º B" }]);
+  it("el límite de retos por cuenta se explica", async () => {
+    respuestas.alu_create_challenge = () => fallo("demasiados_retos");
     act("challengemake");
     await flush();
-    expect(llamadasA("create_challenge").at(-1).body).toEqual({ p_name: "Los de 1º B", p_alias: "Pipa" });
+    expect($("#ch-err").textContent).toMatch(/Borra alguno/);
+  });
+
+  it("al crearlo enseña el código, entra en él como dueño y no guarda ninguna clave", async () => {
+    respuestas.alu_create_challenge = () => ok([{ code: "DEF567", class_name: "Los de 1º B" }]);
+    act("challengemake");
+    await flush();
+    expect(llamadasA("alu_create_challenge").at(-1).body).toEqual({
+      p_token: SESION.token,
+      p_name: "Los de 1º B",
+      p_alias: "Pipa",
+    });
     expect(titulo()).toBe("¡Reto creado!");
     expect($(".codebig").textContent).toBe("DEF567");
-    expect(stored("teach")).toEqual({ code: "DEF567", secret: PROFE });
-    expect(stored("cls")).toMatchObject({ code: "DEF567", alias: "Pipa" });
+    expect(stored("cls")).toEqual({
+      code: "DEF567",
+      name: "Los de 1º B",
+      alias: "Pipa",
+      kind: "reto",
+      owner: true,
+      lists: [1, 2, 3, 4, 5, 6],
+      diffs: ["easy", "normal", "hard"],
+    });
+    expect(localStorage.getItem("pipo2.teach")).toBeNull();
   });
 
   it("copia el código y, si el navegador no deja, lo dice para escribirlo a mano", async () => {
@@ -276,7 +343,22 @@ describe("Reta a tus amigos", () => {
     delete navigator.clipboard;
   });
 
-  it("desde ahí se ve el ranking del reto, con la opción de borrarlo para todos", async () => {
+  it("en un reto NO se mandan los verbos fallados", async () => {
+    respuestas.alu_submit_run = () => ok([{ points: 100, stars: 2 }]);
+    respuestas.class_ranking = () => ok(FILAS);
+    act("play");
+    act("level", '[data-i="0"]');
+    makeMistake();
+    solve();
+    await flush();
+    const run = llamadasA("alu_submit_run").at(-1).body;
+    expect(run.p_mistakes).toBe(1);
+    expect(run.p_misses).toBeNull();
+    act("map");
+    act("home");
+  });
+
+  it("desde el ranking se ve la opción de borrarlo para todos", async () => {
     respuestas.class_ranking = () => ok([{ alias: "Pipa", points: 0, levels: 0 }]);
     act("class");
     await flush();
@@ -288,28 +370,26 @@ describe("Reta a tus amigos", () => {
     act("challengedelask");
     expect($("#modal h2").textContent).toBe("¿Borrar el reto?");
     click($('#modal [data-act="modalclose"]'));
-    expect(stored("teach")).not.toBeNull();
-    respuestas.teacher_delete_class = () => new TypeError("Failed to fetch");
+    expect(stored("cls")).not.toBeNull();
+    respuestas.alu_delete_challenge = () => new TypeError("Failed to fetch");
     act("challengedelask");
     act("challengedel");
     await flush();
     expect($("#del-err").textContent).toMatch(/No hay conexión/);
-    expect(stored("teach")).not.toBeNull();
-    respuestas.teacher_delete_class = () => ok(true);
+    expect(stored("cls")).not.toBeNull();
+    respuestas.alu_delete_challenge = () => ok(true);
     act("challengedel");
     await flush();
-    expect(llamadasA("teacher_delete_class").at(-1).body).toEqual({ p_code: "DEF567", p_teacher_secret: PROFE });
+    expect(llamadasA("alu_delete_challenge").at(-1).body).toEqual({ p_token: SESION.token, p_code: "DEF567" });
     expect($("#modal .modal")).toBeNull();
-    expect(stored("teach")).toBeNull();
     expect(stored("cls")).toBeNull();
     expect(titulo()).toBe("Pipo y los verbos irregulares");
   });
 });
 
-describe("un reto que ya no está en esta clase", () => {
-  it("quien creó un reto y luego entró en otra clase no ve el botón de borrar el reto en esa clase", async () => {
-    store.set("teach", { code: "ZZZ222", secret: PROFE });
-    respuestas.join_class = () => ok([{ player_id: ID, player_secret: SECRETO, class_name: "1º A de ESO" }]);
+describe("la clase de la cuenta manda sobre la copia del navegador", () => {
+  it("quien entra en la clase de otro y no es dueño no ve el botón de borrar el reto", async () => {
+    respuestas.alu_join_class = () => ok([{ ...AULA, kind: "reto" }]);
     respuestas.class_ranking = () => ok(FILAS);
     act("class");
     type("#cc", "ABC234");

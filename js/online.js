@@ -4,15 +4,14 @@
 //   * El juego tiene que seguir funcionando sin conexión: nada de aquí se llama al arrancar y todo fallo
 //     llega como un OnlineError con un mensaje en español listo para enseñar.
 //   * Nunca se fía de lo que contesta el servidor: cada respuesta se comprueba antes de usarla.
-//   * Los secretos (del jugador y de quien crea el reto) solo viven en localStorage (store) y nunca salen en
-//     mensajes de error ni en el registro.
+//   * La ficha de acceso de la cuenta solo vive en localStorage (store) y nunca sale en mensajes de error ni en el
+//     registro.
 import { store } from "./store.js";
 import { ONLINE } from "./data/config.js";
 import { cleanAlias, validAlias } from "./utils.js";
 
 const CODIGO = /^[A-HJ-NP-Z2-9]{6}$/;
 const SECRETO = /^[0-9a-f]{32}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** Mensajes para el alumnado. Las claves son los códigos de error de la base de datos más los propios de este módulo. */
 export const MENSAJES = {
@@ -35,6 +34,10 @@ export const MENSAJES = {
   sesion_no_valida: "Tu sesión ha caducado. Vuelve a entrar.",
   rol_no_permitido: "Esa cuenta no puede hacer esto.",
   rol_invalido: "No he podido crear la cuenta. Inténtalo otra vez.",
+  ya_en_clase: "Ya estás en una clase. Sal de ella antes de unirte a otra.",
+  demasiados_retos: "Ya has creado muchos retos. Borra alguno para crear otro.",
+  progreso_invalido: "No he podido guardar tu progreso.",
+  dificultad_no_permitida: "Tu profe no permite esa dificultad en esta clase.",
   sin_conexion: "No hay conexión. Puedes seguir jugando e intentarlo más tarde.",
   tiempo_agotado: "El servidor tarda demasiado. Inténtalo más tarde.",
   error_servidor: "Algo ha fallado al hablar con el servidor. Inténtalo más tarde.",
@@ -59,6 +62,8 @@ export function cleanCode(s) {
 const USUARIO = /^[A-Za-z0-9._-]{3,30}$/;
 const CLAVE_RECUPERACION = /^[0-9a-f]{40}$/;
 const ROLES = ["alumno", "profe"];
+const TODAS_LAS_LISTAS = [1, 2, 3, 4, 5, 6];
+const TODAS_LAS_DIFICULTADES = ["easy", "normal", "hard"];
 
 const esEntero = (n) => Number.isInteger(n) && n >= 0;
 const malaRespuesta = () => new OnlineError("error_servidor");
@@ -103,6 +108,27 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
   }
 
   const primera = (r) => (Array.isArray(r) && r.length === 1 && r[0] && typeof r[0] === "object" ? r[0] : null);
+
+  /** Ejecuta una llamada con la sesión de la cuenta; si el servidor dice que ya no vale, se olvida en este navegador. */
+  async function conSesion(cuenta, llamada) {
+    try {
+      return await llamada();
+    } catch (e) {
+      if (e.code === "sesion_no_valida") {
+        store.remove("acc");
+        store.remove("cls");
+      }
+      throw e;
+    }
+  }
+  const nombreValido = (n) => typeof n === "string" && n.length >= 1 && n.length <= 40;
+  /** Guarda la copia local de la clase a partir de lo que contesta el servidor (que es quien manda). */
+  function guardarClase(r, alias, nombre, dueno, codigo = r.code) {
+    const lists = Array.isArray(r.allowed_lists) ? r.allowed_lists : TODAS_LAS_LISTAS;
+    const diffs = Array.isArray(r.allowed_difficulties) ? r.allowed_difficulties : TODAS_LAS_DIFICULTADES;
+    if (!nombreValido(nombre) || (r.kind !== "aula" && r.kind !== "reto")) throw malaRespuesta();
+    store.set("cls", { code: codigo, name: nombre, alias, kind: r.kind, owner: dueno === true, lists, diffs });
+  }
 
   /** Comprueba usuario y contraseña antes de molestar al servidor. */
   function credenciales(usuario, clave) {
@@ -193,69 +219,124 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       }
     },
 
-    /** Datos públicos de la clase en la que está este navegador, o null. Nunca incluye el secreto. */
-    session() {
-      const s = store.get("cls", null);
-      return s ? { code: s.code, name: s.name, alias: s.alias } : null;
-    },
-    /** Datos del reto creado desde este navegador (código y clave de quien lo creó), o null. */
-    challengeOwner() {
-      return store.get("teach", null);
+    /** Borra la cuenta (pide la contraseña) y con ella el progreso, el sitio en la clase y los retos propios. */
+    async deleteAccount(clave) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      const ok = await conSesion(a, () => rpc("account_delete", { p_token: a.token, p_password: String(clave ?? "") }));
+      if (ok !== true) throw malaRespuesta();
+      store.remove("acc");
+      store.remove("cls");
+      return true;
     },
 
-    /** «Reta a tus amigos»: crea un reto, entra en él con el apodo dado y recuerda la clave para poder borrarlo. */
-    async createChallenge(name, alias) {
-      const a = cleanAlias(alias ?? "");
-      if (!validAlias(a)) throw new OnlineError("apodo_invalido");
-      const r = primera(await rpc("create_challenge", { p_name: String(name ?? ""), p_alias: a }));
+    /** La cuenta tal como la ve el servidor: rol, usuario y progreso guardado. */
+    async me() {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      const r = primera(await conSesion(a, () => rpc("account_me", { p_token: a.token })));
       if (
         !r ||
-        !CODIGO.test(r.code) ||
-        !SECRETO.test(r.teacher_secret) ||
-        !UUID.test(r.player_id) ||
-        !SECRETO.test(r.player_secret) ||
-        typeof r.class_name !== "string" ||
-        r.class_name.length < 1 ||
-        r.class_name.length > 40
+        !ROLES.includes(r.role) ||
+        typeof r.username !== "string" ||
+        r.progress === null ||
+        typeof r.progress !== "object" ||
+        Array.isArray(r.progress)
       )
         throw malaRespuesta();
-      store.set("teach", { code: r.code, secret: r.teacher_secret });
-      store.set("cls", { code: r.code, name: r.class_name, alias: a, id: r.player_id, secret: r.player_secret });
-      return { code: r.code, name: r.class_name, alias: a };
+      return { role: r.role, username: r.username, progress: r.progress, mustChange: r.must_change_password === true };
+    },
+
+    /** Guarda el progreso del alumno (estrellas, verbos elegidos, fallos y dificultad) en su cuenta. */
+    async saveProgress(progress) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      const ok = await conSesion(a, () => rpc("alu_save_progress", { p_token: a.token, p_progress: progress }));
+      if (ok !== true) throw malaRespuesta();
+      return true;
+    },
+
+    /** Datos públicos de la clase en la que está este navegador, o null (copia de lo que dice el servidor). */
+    session() {
+      const s = store.get("cls", null);
+      return s
+        ? { code: s.code, name: s.name, alias: s.alias, kind: s.kind, isOwner: s.owner, lists: s.lists, diffs: s.diffs }
+        : null;
+    },
+
+    /** Pregunta al servidor en qué clase está la cuenta y actualiza la copia de este navegador. */
+    async refreshClass() {
+      const a = store.get("acc", null);
+      if (!a || a.role !== "alumno") return null;
+      const r = await conSesion(a, () => rpc("alu_my_class", { p_token: a.token }));
+      if (!Array.isArray(r) || r.length > 1) throw malaRespuesta();
+      if (r.length === 0) {
+        store.remove("cls");
+        return null;
+      }
+      guardarClase(r[0], r[0].alias, r[0].name, r[0].is_owner);
+      return this.session();
+    },
+
+    /** «Reta a tus amigos»: crea un reto cuyo dueño es esta cuenta y entra en él con el apodo dado. */
+    async createChallenge(name, alias) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      const ap = cleanAlias(alias ?? "");
+      if (!validAlias(ap)) throw new OnlineError("apodo_invalido");
+      const r = primera(
+        await conSesion(a, () =>
+          rpc("alu_create_challenge", { p_token: a.token, p_name: String(name ?? ""), p_alias: ap })
+        )
+      );
+      if (!r || !CODIGO.test(r.code) || !nombreValido(r.class_name)) throw malaRespuesta();
+      store.set("cls", {
+        code: r.code,
+        name: r.class_name,
+        alias: ap,
+        kind: "reto",
+        owner: true,
+        lists: TODAS_LAS_LISTAS,
+        diffs: TODAS_LAS_DIFICULTADES,
+      });
+      return { code: r.code, name: r.class_name, alias: ap };
     },
 
     /** Entra en una clase con un apodo y la recuerda en este navegador. */
     async joinClass(code, alias) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
       const c = cleanCode(code);
       if (!c) throw new OnlineError("codigo_invalido");
-      const a = cleanAlias(alias ?? "");
-      if (!validAlias(a)) throw new OnlineError("apodo_invalido");
-      const r = primera(await rpc("join_class", { p_code: c, p_alias: a }));
-      if (!r || !UUID.test(r.player_id) || !SECRETO.test(r.player_secret)) throw malaRespuesta();
-      if (typeof r.class_name !== "string" || r.class_name.length < 1 || r.class_name.length > 40)
-        throw malaRespuesta();
-      store.set("cls", { code: c, name: r.class_name, alias: a, id: r.player_id, secret: r.player_secret });
-      return { code: c, name: r.class_name, alias: a };
+      const ap = cleanAlias(alias ?? "");
+      if (!validAlias(ap)) throw new OnlineError("apodo_invalido");
+      const r = primera(await conSesion(a, () => rpc("alu_join_class", { p_token: a.token, p_code: c, p_alias: ap })));
+      if (!r || !nombreValido(r.class_name)) throw malaRespuesta();
+      guardarClase(r, ap, r.class_name, false, c);
+      return { code: c, name: r.class_name, alias: ap };
     },
 
     /** Envía una partida terminada. Devuelve los puntos y las estrellas que calcula el servidor. */
-    async submitRun({ level, difficulty, correct, mistakes }) {
-      const s = store.get("cls", null);
-      if (!s) throw new OnlineError("sin_clase");
+    async submitRun({ level, difficulty, correct, mistakes, misses }) {
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      if (!store.get("cls", null)) throw new OnlineError("sin_clase");
       let r;
       try {
         r = primera(
-          await rpc("submit_run", {
-            p_player: s.id,
-            p_secret: s.secret,
-            p_level: level,
-            p_difficulty: difficulty,
-            p_correct: correct,
-            p_mistakes: mistakes,
-          })
+          await conSesion(a, () =>
+            rpc("alu_submit_run", {
+              p_token: a.token,
+              p_level: level,
+              p_difficulty: difficulty,
+              p_correct: correct,
+              p_mistakes: mistakes,
+              p_misses: Array.isArray(misses) ? misses : null,
+            })
+          )
         );
       } catch (e) {
-        if (e.code === "jugador_no_valido") store.remove("cls"); // ya no estamos en la clase: se deja de enviar
+        if (e.code === "sin_clase") store.remove("cls"); // el servidor ya no nos tiene en ninguna clase
         throw e;
       }
       if (!r || !esEntero(r.points) || !esEntero(r.stars)) throw malaRespuesta();
@@ -274,32 +355,27 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       });
     },
 
-    /** El alumno sale de la clase y el servidor borra su apodo y sus partidas. */
+    /** El alumno sale de la clase y el servidor borra su apodo y sus partidas en ella. */
     async leaveClass() {
-      const s = store.get("cls", null);
-      if (!s) throw new OnlineError("sin_clase");
-      let ok;
-      try {
-        ok = await rpc("leave_class", { p_player: s.id, p_secret: s.secret });
-      } catch (e) {
-        if (e.code !== "jugador_no_valido") throw e; // sin conexión: se conserva para poder reintentarlo
-        ok = true;
-      }
+      const a = store.get("acc", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      if (!store.get("cls", null)) throw new OnlineError("sin_clase");
+      const ok = await conSesion(a, () => rpc("alu_leave_class", { p_token: a.token }));
       if (typeof ok !== "boolean") throw malaRespuesta();
-      // Si el servidor dice que no hay nada que borrar, ya estaba borrado: se olvida igualmente.
+      // Si el servidor dice que no hay nada que borrar, ya estaba fuera: se olvida igualmente.
       store.remove("cls");
       return ok;
     },
 
     /** Quien creó el reto lo borra entero, con todos sus participantes y partidas. */
     async deleteChallenge() {
-      const t = store.get("teach", null);
-      if (!t) throw new OnlineError("sin_clase");
-      const ok = await rpc("teacher_delete_class", { p_code: t.code, p_teacher_secret: t.secret });
+      const a = store.get("acc", null);
+      const s = store.get("cls", null);
+      if (!a) throw new OnlineError("sesion_no_valida");
+      if (!s || !s.owner) throw new OnlineError("sin_clase");
+      const ok = await conSesion(a, () => rpc("alu_delete_challenge", { p_token: a.token, p_code: s.code }));
       if (typeof ok !== "boolean") throw malaRespuesta();
-      store.remove("teach");
-      // Si este navegador estaba dentro del reto, su jugador se borró con él.
-      if ((store.get("cls", null) || {}).code === t.code) store.remove("cls");
+      store.remove("cls");
       return ok;
     },
   };

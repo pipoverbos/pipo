@@ -39,23 +39,25 @@ function limpiarSeleccion(v) {
 
 const CODIGO = /^[A-HJ-NP-Z2-9]{6}$/;
 const SECRETO = /^[0-9a-f]{32}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-/** Clase en la que juega este navegador: código, nombre, apodo, identificador del jugador y su secreto. */
+/** Clase en la que está esta cuenta (copia de lo que dice el servidor): código, nombre, apodo, tipo y ajustes. */
 function limpiarClase(v) {
   if (v === null || typeof v !== "object") return undefined;
-  const { code, name, alias, id, secret } = v;
+  const { code, name, alias, kind, owner, lists, diffs } = v;
   if (!CODIGO.test(code) || typeof name !== "string" || name.length < 1 || name.length > 40) return undefined;
   if (typeof alias !== "string" || !validAlias(alias)) return undefined;
-  if (!UUID.test(id) || !SECRETO.test(secret)) return undefined;
-  return { code, name, alias, id, secret };
-}
-
-/** Clase creada desde este navegador: código y clave de quien la creó. */
-function limpiarProfe(v) {
-  if (v === null || typeof v !== "object") return undefined;
-  const { code, secret } = v;
-  return CODIGO.test(code) && SECRETO.test(secret) ? { code, secret } : undefined;
+  if (kind !== "aula" && kind !== "reto") return undefined;
+  if (typeof owner !== "boolean") return undefined;
+  if (
+    !Array.isArray(lists) ||
+    lists.length < 1 ||
+    lists.length > 6 ||
+    !lists.every((n) => Number.isInteger(n) && n >= 1 && n <= 6)
+  )
+    return undefined;
+  if (!Array.isArray(diffs) || diffs.length < 1 || diffs.length > 3 || !diffs.every((d) => DIFFS.includes(d)))
+    return undefined;
+  return { code, name, alias, kind, owner, lists, diffs };
 }
 
 /** Sesión de la cuenta: ficha de acceso (32 hex), rol y usuario. La ficha solo vive en este navegador. */
@@ -71,7 +73,7 @@ export const SCHEMA = {
   acc: limpiarCuenta,
   hadacc: esBool,
   cls: limpiarClase,
-  teach: limpiarProfe,
+  dirty: esBool,
   seen: esBool,
   sound: esBool,
   name: (v) => (typeof v === "string" && validAlias(v) ? v : undefined),
@@ -93,6 +95,7 @@ function limpiador(k) {
 export const MIGRATIONS = {};
 
 const mem = {};
+let alCambiar = null;
 
 function clean(k, v) {
   const fn = limpiador(k);
@@ -132,6 +135,7 @@ export const store = {
     } catch {
       /* localStorage bloqueado: queda solo la copia en memoria */
     }
+    if (alCambiar) alCambiar(k);
   },
   remove: function (k) {
     delete mem[k];
@@ -140,6 +144,11 @@ export const store = {
     } catch {
       /* localStorage bloqueado: no hay nada que borrar */
     }
+    if (alCambiar) alCambiar(k);
+  },
+  /** Un solo oyente: se le avisa con la clave cada vez que algo cambia (lo usa el progreso para sincronizarse). */
+  onChange: function (fn) {
+    alCambiar = fn;
   },
   /** Lleva los datos guardados a la versión actual. Se llama una vez al arrancar, antes de pintar nada. */
   init: function () {

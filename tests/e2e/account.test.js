@@ -352,3 +352,176 @@ describe("contraseña temporal puesta por el profesor", () => {
     expect($(".home")).not.toBeNull();
   });
 });
+
+describe("el progreso viaja con la cuenta", () => {
+  const PROGRESO = { stars: { easy: [3, 2, 0, 0, 0] }, sel: ["go", "be", "put"], diff: "hard" };
+  const me = (progress) => () => ok([{ role: "alumno", username: "pipa.leo8", progress, must_change_password: false }]);
+  const sesion = () =>
+    localStorage.setItem("pipo2.acc", JSON.stringify({ token: TOKEN, role: "alumno", username: "pipa.leo8" }));
+
+  it("al entrar con la contraseña, el progreso del navegador pasa a ser el de la cuenta", async () => {
+    respuestas.account_logout = () => ok(true);
+    act("logout");
+    await flush();
+    localStorage.setItem("pipo2.stars.normal", JSON.stringify([1, 1, 1, 1, 1])); // de otra persona
+    act("student");
+    respuestas.account_login = () => entrada("alumno");
+    respuestas.account_me = me(PROGRESO);
+    respuestas.alu_my_class = () => ok([]);
+    type("#au", "pipa.leo8");
+    type("#ap", "una contraseña larga");
+    act("authsubmit");
+    await flush();
+    expect($(".home")).not.toBeNull();
+    expect(stored("stars.easy")).toEqual([3, 2, 0, 0, 0]);
+    expect(stored("stars.normal")).toBeNull();
+    expect(stored("diff")).toBe("hard");
+    expect(stored("sel")).toEqual(["go", "be", "put"]);
+    expect($(".home").textContent).toContain("0 de 15 estrellas (Difícil)");
+  });
+
+  it("al cambiar de dificultad se guarda en la cuenta pasados un par de segundos, una sola vez", async () => {
+    respuestas.alu_save_progress = () => ok(true);
+    const antes = llamadasA("alu_save_progress").length;
+    act("diff", '[data-d="easy"]');
+    act("diff", '[data-d="normal"]');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(llamadasA("alu_save_progress")).toHaveLength(antes);
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(llamadasA("alu_save_progress")).toHaveLength(antes + 1);
+    expect(llamadasA("alu_save_progress").at(-1).body).toEqual({
+      p_token: TOKEN,
+      p_progress: { stars: { easy: [3, 2, 0, 0, 0] }, sel: ["go", "be", "put"], diff: "normal" },
+    });
+  });
+
+  it("al abrir el juego con la sesión puesta, trae lo de la cuenta sin hacer esperar", async () => {
+    act("logout");
+    await flush();
+    sesion();
+    respuestas.account_me = me({ stars: { normal: [3, 3, 0, 0, 0] }, diff: "normal" });
+    respuestas.alu_my_class = () =>
+      ok([
+        {
+          code: "ABC234",
+          name: "1º A de ESO",
+          alias: "Pipa",
+          kind: "aula",
+          allowed_lists: [1, 2, 3, 4, 5, 6],
+          allowed_difficulties: ["easy", "normal", "hard"],
+          is_owner: false,
+        },
+      ]);
+    act("student");
+    expect($(".home")).not.toBeNull(); // entra al momento
+    await flush();
+    expect(stored("stars.normal")).toEqual([3, 3, 0, 0, 0]);
+    expect($(".home").textContent).toContain("6 de 15 estrellas");
+    expect($('[data-act="class"]').textContent).toContain("Ranking de 1º A de ESO");
+  });
+
+  it("si hay cambios sin enviar, no se pisan con lo de la cuenta: se envían", async () => {
+    act("diff", '[data-d="hard"]'); // pendiente
+    act("logout"); // no espera los 2 segundos: envía lo pendiente al salir
+    await flush();
+    expect(llamadasA("alu_save_progress").at(-1).body.p_progress.diff).toBe("hard");
+  });
+
+  it("cerrar sesión borra el progreso y la clase de este navegador, y deja el sonido y el apodo", async () => {
+    expect(stored("stars.normal")).toBeNull();
+    expect(stored("diff")).toBeNull();
+    expect(stored("cls")).toBeNull();
+    expect(stored("dirty")).toBeNull();
+    expect(stored("name")).toBe("Pipa");
+  });
+
+  it("crear una cuenta nueva adopta el progreso que ya hubiera en el navegador", async () => {
+    localStorage.setItem("pipo2.stars.easy", JSON.stringify([3, 3, 3, 0, 0]));
+    act("student");
+    act("authmode", '[data-m="register"]');
+    respuestas.account_register = () => ok([{ token: TOKEN, recovery_code: RECUPERACION }]);
+    type("#au", "nueva.cuenta");
+    type("#ap", "una contraseña larga");
+    act("authsubmit");
+    await flush();
+    expect(llamadasA("alu_save_progress").at(-1).body.p_progress).toEqual({ stars: { easy: [3, 3, 3, 0, 0] } });
+    click($("#recok"));
+    act("reccontinue");
+    expect($(".home")).not.toBeNull();
+  });
+
+  it("si la sesión ha caducado al abrir, se pide entrar de nuevo con un aviso", async () => {
+    respuestas.account_logout = () => ok(true);
+    act("logout");
+    await flush();
+    sesion();
+    respuestas.account_me = () => fallo("sesion_no_valida");
+    act("student");
+    await flush();
+    expect(titulo()).toBe("Soy alumno");
+    expect($(".err[role=alert]").textContent).toMatch(/Tu sesión ha caducado/);
+    expect(stored("acc")).toBeNull();
+  });
+});
+
+describe("mi cuenta", () => {
+  const entrarAlumno = async () => {
+    localStorage.setItem("pipo2.acc", JSON.stringify({ token: TOKEN, role: "alumno", username: "pipa.leo8" }));
+    respuestas.account_me = () =>
+      ok([{ role: "alumno", username: "pipa.leo8", progress: {}, must_change_password: false }]);
+    respuestas.alu_my_class = () => ok([]);
+    act("authback");
+    act("student");
+    await flush();
+  };
+
+  it("enseña el usuario y se llega desde el inicio", async () => {
+    await entrarAlumno();
+    act("myaccount");
+    expect(titulo()).toBe("Mi cuenta");
+    expect($("#view").textContent).toContain("pipa.leo8");
+    act("accountback");
+    expect($(".home")).not.toBeNull();
+  });
+
+  it("cambiar la contraseña pide la actual, avisa si no es y vuelve a «Mi cuenta»", async () => {
+    act("myaccount");
+    act("changepassopen");
+    expect(titulo()).toBe("Cambiar contraseña");
+    respuestas.account_change_password = () => fallo("credenciales_invalidas");
+    type("#cp-old", "mal");
+    type("#cp-new", "mi contraseña nueva");
+    act("changepasssubmit");
+    await flush();
+    expect($("#cp-old-err").textContent).toMatch(/no es correcta/);
+    respuestas.account_change_password = () => ok(true);
+    type("#cp-old", "una contraseña larga");
+    act("changepasssubmit");
+    await flush();
+    expect(titulo()).toBe("Mi cuenta");
+  });
+
+  it("borrar la cuenta pide la contraseña, avisa si es otra y, al confirmar, lo borra todo", async () => {
+    act("accountdelask");
+    expect($("#modal h2").textContent).toBe("¿Borrar mi cuenta?");
+    expect($("#modal").textContent).toContain("pipa.leo8");
+    expect($("#modal").textContent).toMatch(/retos/);
+    click($('#modal [data-act="modalclose"]'));
+    expect(stored("acc")).not.toBeNull();
+    respuestas.account_delete = () => fallo("credenciales_invalidas");
+    act("accountdelask");
+    type("#da-pw", "mal");
+    act("accountdel");
+    await flush();
+    expect($("#da-err").textContent).toBe("La contraseña no es correcta.");
+    expect(stored("acc")).not.toBeNull();
+    respuestas.account_delete = () => ok(true);
+    type("#da-pw", "una contraseña larga");
+    act("accountdel");
+    await flush();
+    expect(llamadasA("account_delete").at(-1).body).toEqual({ p_token: TOKEN, p_password: "una contraseña larga" });
+    expect(stored("acc")).toBeNull();
+    expect($("#modal .modal")).toBeNull();
+    expect($(".role")).not.toBeNull();
+  });
+});
