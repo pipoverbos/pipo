@@ -7,6 +7,7 @@ import { adoptar, apply, clearLocal, guardar, iniciarSincronizacion, snapshot, t
 const TOKEN = "0123456789abcdef0123456789abcdef";
 const PROGRESO = {
   stars: { easy: [3, 2, 1, 0, 0], normal: [1, 0, 0, 0, 0] },
+  total: 27,
   sel: ["go", "be"],
   miss: { go: 3 },
   diff: "hard",

@@ -16,6 +16,14 @@ export async function boot({ seen = true, storage = {}, role = true, account = t
   // Quien ya vio la presentación tiene apodo (sin él, el juego vuelve a pedirlo): se pone uno salvo que el test diga otro.
   if (seen && !("name" in storage)) localStorage.setItem("pipo2.name", JSON.stringify("Pipa"));
   if (account && !("acc" in storage)) localStorage.setItem("pipo2.acc", JSON.stringify(SESION));
+  // Los tests nunca salen a la red de verdad: sin un servidor falso propio, es como no tener conexión.
+  if (!vi.isMockFunction(globalThis.fetch) && !globalThis.fetch?.__falso) {
+    const sinRed = async () => {
+      throw new TypeError("sin red en los tests");
+    };
+    sinRed.__falso = true;
+    vi.stubGlobal("fetch", sinRed);
+  }
   for (const [k, v] of Object.entries(storage)) localStorage.setItem("pipo2." + k, JSON.stringify(v));
   const html = fs.readFileSync(path.resolve(import.meta.dirname, "../../index.html"), "utf8");
   document.body.innerHTML = html.match(/<body>([\s\S]*)<\/body>/)[1].replace(/<script[\s\S]*?<\/script>/g, "");

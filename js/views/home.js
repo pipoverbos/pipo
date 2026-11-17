@@ -2,7 +2,7 @@
 import { esc, pick } from "../utils.js";
 import { store } from "../store.js";
 import { online } from "../online.js";
-import { selV, selSet, getStars, missMap } from "../verbs.js";
+import { selV, selSet, getStars, missMap, totalStars } from "../verbs.js";
 import { MIN, DIFFS, DIFFD } from "../data/config.js";
 import { pipo } from "../ui/pipo.js";
 import { ICON, starSVG } from "../ui/icons.js";
@@ -81,8 +81,13 @@ export function homeView(v) {
     '<div class="row mt2" style="justify-content:space-between"><div class="row"><span class="stars" aria-hidden="true">' +
     starSVG(true) +
     "</span><span>" +
+    "<b>" +
+    totalStars() +
+    "</b> " +
+    (totalStars() === 1 ? "estrella" : "estrellas") +
+    " en total · mapa " +
     st +
-    " de 15 estrellas (" +
+    " de 15 (" +
     DIFFS[d] +
     ")</span></div>" +
     '<div class="row"><button class="iconbtn" data-act="sound" aria-label="' +

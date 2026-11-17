@@ -6,7 +6,7 @@ import { S } from "./state.js";
 import { online } from "./online.js";
 import { go, render } from "./router.js";
 import { modal, closeModal } from "./ui/modal.js";
-import { apply, adoptar, traer, guardar, clearLocal } from "./progress.js";
+import { apply, adoptar, traer, guardar, clearLocal, snapshot } from "./progress.js";
 
 const setErr = (id, msg, field) => {
   const e = $("#" + id);
@@ -40,6 +40,7 @@ export function entrarComo(role) {
 
 /** Con la sesión ya abierta: trae el progreso y la clase de la cuenta sin hacer esperar a nadie. */
 async function sincronizar() {
+  const antes = JSON.stringify([snapshot(), store.get("cls", null)]);
   try {
     await traer();
     await online.refreshClass();
@@ -47,7 +48,8 @@ async function sincronizar() {
     if (e.code === "sesion_no_valida") return void sesionCaducada(e);
     /* sin conexión: se sigue con lo que hay en este dispositivo */
   }
-  if (S.screen === "home") render();
+  // Solo se repinta el inicio si de verdad ha cambiado algo: así no se mueve nada (ni el foco) sin motivo.
+  if (S.screen === "home" && JSON.stringify([snapshot(), store.get("cls", null)]) !== antes) render();
 }
 
 /** Tras entrar: el progreso y la clase pasan a ser los de la cuenta. Un fallo no impide jugar. */

@@ -102,6 +102,52 @@ describe("estrellas y niveles", () => {
   });
 });
 
+describe("contador de estrellas total", () => {
+  it("empieza en cero", () => {
+    expect(v.mapStars()).toBe(0);
+    expect(v.totalStars()).toBe(0);
+  });
+  it("sin contador guardado vale lo que hay en el mapa de las tres dificultades (quien jugaba antes del contador)", () => {
+    store.set("stars.easy", [3, 2, 0, 0, 0]);
+    store.set("stars.hard", [1, 0, 0, 0, 0]);
+    expect(v.mapStars()).toBe(6);
+    expect(v.totalStars()).toBe(6);
+  });
+  it("con contador guardado, manda el contador aunque el mapa tenga menos", () => {
+    store.set("stars.easy", [1, 0, 0, 0, 0]);
+    store.set("total", 40);
+    expect(v.totalStars()).toBe(40);
+  });
+  it("addTotal suma (partiendo del mapa si aún no había contador), ignora lo que no suma y se queda en 999999", () => {
+    store.set("stars.easy", [3, 0, 0, 0, 0]);
+    v.addTotal(2);
+    expect(store.get("total", null)).toBe(5);
+    v.addTotal(0);
+    v.addTotal(-3);
+    expect(v.totalStars()).toBe(5);
+    store.set("total", 999998);
+    v.addTotal(10);
+    expect(v.totalStars()).toBe(999999);
+  });
+  it("resetMap vacía el mapa de las tres dificultades y conserva el total (incluso el que aún no estaba guardado)", () => {
+    store.set("stars.easy", [3, 2, 0, 0, 0]);
+    store.set("stars.normal", [1, 0, 0, 0, 0]);
+    v.resetMap();
+    expect(v.mapStars()).toBe(0);
+    expect(v.getStars("easy")).toEqual([0, 0, 0, 0, 0]);
+    expect(v.totalStars()).toBe(6);
+    expect(store.get("total", null)).toBe(6);
+  });
+  it("lo guardado como contador se limpia: solo enteros de 0 a 999999", () => {
+    for (const malo of [-1, 1.5, "7", 1000000, null, [1]]) {
+      localStorage.setItem("pipo2.total", JSON.stringify(malo));
+      store.remove("total");
+      localStorage.setItem("pipo2.total", JSON.stringify(malo));
+      expect(store.get("total", null)).toBeNull();
+    }
+  });
+});
+
 describe("errores guardados", () => {
   it("cuenta los fallos por verbo", () => {
     v.addMiss("go");

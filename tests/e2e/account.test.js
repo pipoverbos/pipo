@@ -377,7 +377,7 @@ describe("el progreso viaja con la cuenta", () => {
     expect(stored("stars.normal")).toBeNull();
     expect(stored("diff")).toBe("hard");
     expect(stored("sel")).toEqual(["go", "be", "put"]);
-    expect($(".home").textContent).toContain("0 de 15 estrellas (Difícil)");
+    expect($(".home").textContent).toContain("mapa 0 de 15 (Difícil)");
   });
 
   it("al cambiar de dificultad se guarda en la cuenta pasados un par de segundos, una sola vez", async () => {
@@ -416,7 +416,7 @@ describe("el progreso viaja con la cuenta", () => {
     expect($(".home")).not.toBeNull(); // entra al momento
     await flush();
     expect(stored("stars.normal")).toEqual([3, 3, 0, 0, 0]);
-    expect($(".home").textContent).toContain("6 de 15 estrellas");
+    expect($(".home").textContent).toContain("mapa 6 de 15");
     expect($('[data-act="class"]').textContent).toContain("Ranking de 1º A de ESO");
   });
 

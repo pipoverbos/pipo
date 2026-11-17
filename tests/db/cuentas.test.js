@@ -63,7 +63,12 @@ beforeAll(async () => {
     grant usage on schema public, extensions to anon, authenticated;
     alter default privileges in schema public grant all on tables to anon, authenticated;
   `);
-  for (const f of ["0001_clases_y_ranking.sql", "0003_profesores_y_retos.sql", "0004_cuentas.sql"]) {
+  for (const f of [
+    "0001_clases_y_ranking.sql",
+    "0003_profesores_y_retos.sql",
+    "0004_cuentas.sql",
+    "0005_estrellas_acumuladas.sql",
+  ]) {
     await db.exec(fs.readFileSync(path.resolve(import.meta.dirname, "../../supabase/migrations", f), "utf8"));
   }
 }, 60000);
@@ -320,6 +325,7 @@ describe("separación de roles", () => {
 describe("progreso del alumno", () => {
   const BUENO = {
     stars: { easy: [3, 2, 1, 0, 0], normal: [1, 0, 0, 0, 0], hard: [0, 0, 0, 0, 0] },
+    total: 27,
     sel: ["go", "be", "put up"],
     miss: { go: 3, be: 1 },
     diff: "hard",
@@ -329,6 +335,13 @@ describe("progreso del alumno", () => {
     expect(await rpc("alu_save_progress", [a.token, BUENO])).toEqual([{ alu_save_progress: true }]);
     const [otra] = await rpc("account_login", ["progreso", PASS]);
     expect((await rpc("account_me", [otra.token]))[0].progress).toEqual(BUENO);
+  });
+  it("el contador de estrellas acepta de 0 a 999999", async () => {
+    const a = await alumno();
+    for (const total of [0, 27, 999999]) {
+      await rpc("alu_save_progress", [a.token, { total }]);
+      expect((await rpc("account_me", [a.token]))[0].progress).toEqual({ total });
+    }
   });
   it("acepta un progreso parcial y se queda solo con lo conocido", async () => {
     const a = await alumno();
@@ -351,6 +364,10 @@ describe("progreso del alumno", () => {
     ["fallos con cero", { miss: { go: 0 } }],
     ["fallos con un decimal", { miss: { go: 1.5 } }],
     ["fallos enormes", { miss: { go: 100000 } }],
+    ["contador de estrellas negativo", { total: -1 }],
+    ["contador de estrellas decimal", { total: 1.5 }],
+    ["contador de estrellas que no es un número", { total: "27" }],
+    ["contador de estrellas enorme", { total: 1000000 }],
     ["dificultad inválida", { diff: "imposible" }],
     ["dificultad que no es texto", { diff: 3 }],
   ])("rechaza el progreso: %s", async (_motivo, progreso) => {

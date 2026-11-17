@@ -78,6 +78,7 @@ export const SCHEMA = {
   sound: esBool,
   name: (v) => (typeof v === "string" && validAlias(v) ? v : undefined),
   diff: (v) => (DIFFS.includes(v) ? v : undefined),
+  total: (v) => (Number.isInteger(v) && v >= 0 && v <= 999999 ? v : undefined),
   sel: limpiarSeleccion,
   miss: limpiarFallos,
   v: (v) => (Number.isInteger(v) && v >= 1 ? v : undefined),

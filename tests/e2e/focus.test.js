@@ -23,6 +23,16 @@ describe("foco al cambiar de pantalla", () => {
     }
   });
 
+  it("repintar la pantalla con el título enfocado no pierde el foco (p. ej. al acabar una sincronización)", () => {
+    act("home");
+    expect(active().tagName).toBe("H1");
+    act("sound"); // repinta el inicio
+    expect(active().tagName).toBe("H1");
+    act("sound");
+    expect(active().textContent).toBe("Pipo y los verbos irregulares");
+    act("play"); // los tests siguientes empiezan desde otra pantalla
+  });
+
   it("cambiar la dificultad no hace perder el foco", () => {
     act("home");
     const hard = $('[data-act="diff"][data-d="hard"]');

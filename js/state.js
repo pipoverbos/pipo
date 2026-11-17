@@ -5,6 +5,7 @@
 // role: cómo ha entrado quien juega en esta visita ("alumno", "profe" o null mientras no ha elegido).
 // authRole y authMode: la pantalla de entrar o crear cuenta (rol que se pide y pestaña). rec: código de recuperación
 // que se enseña una sola vez ({ code, next }). aviso: texto para la pantalla de entrar (p. ej. sesión caducada).
+// vpend: verbos elegidos pendientes de confirmar (cambiarlos reinicia el mapa de niveles).
 // cpVolver: la pantalla de cambiar contraseña se abrió desde «Mi cuenta» y vuelve allí.
 export const S = {
   screen: "load",

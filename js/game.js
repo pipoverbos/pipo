@@ -3,7 +3,7 @@ import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
 import { R, setR } from "./state.js";
 import { BASE } from "./data/base-verbs.js";
-import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick } from "./verbs.js";
+import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick, addTotal } from "./verbs.js";
 import { LV } from "./data/config.js";
 import { snd } from "./audio.js";
 import { confetti } from "./confetti.js";
@@ -233,6 +233,7 @@ export function finish() {
     var d = store.get("diff", "normal"),
       s = getStars(d);
     if (stars > s[R.idx]) {
+      addTotal(stars - s[R.idx]); // el contador de por vida suma solo lo nuevo
       s[R.idx] = stars;
       store.set("stars." + d, s);
     }
