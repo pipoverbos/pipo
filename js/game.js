@@ -232,9 +232,9 @@ export function finish() {
   if (R.idx >= 0) {
     var d = store.get("diff", "normal"),
       s = getStars(d);
+    addTotal(stars); // el contador de por vida suma las estrellas de cada intento superado
     if (stars > s[R.idx]) {
-      addTotal(stars - s[R.idx]); // el contador de por vida suma solo lo nuevo
-      s[R.idx] = stars;
+      s[R.idx] = stars; // el mapa guarda la mejor nota de cada nivel (es lo que abre el siguiente)
       store.set("stars." + d, s);
     }
   } else {
