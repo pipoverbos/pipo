@@ -6,12 +6,15 @@
 export function focusSignature(root) {
   const el = document.activeElement;
   if (!el || el === document.body || !root.contains(el)) return null;
+  // El título de la pantalla (que recibe el foco al llegar) no tiene id ni datos: se recuerda como «el título».
+  if (/^H[12]$/.test(el.tagName) && !el.id) return { heading: true, id: "", data: {} };
   return { id: el.id, data: { ...el.dataset } };
 }
 
 /** Devuelve el foco al control anotado; si ya no existe, al primero que encaje con `fallbacks`. */
 export function restoreFocus(sig, root, fallbacks = []) {
   if (!sig) return;
+  if (sig.heading) return focusHeading(root);
   const byData = Object.entries(sig.data)
     .map(([k, v]) => `[data-${k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase())}="${v}"]`)
     .join("");

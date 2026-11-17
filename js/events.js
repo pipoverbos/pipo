@@ -3,13 +3,13 @@ import { $, cleanAlias, validAlias } from "./utils.js";
 import { store } from "./store.js";
 import { online } from "./online.js";
 import { S, R, setR } from "./state.js";
-import { selSet, selV, saveSel, unlocked, listInfs } from "./verbs.js";
+import { selSet, selV, unlocked, listInfs } from "./verbs.js";
 import { BASE } from "./data/base-verbs.js";
 import { MIN, COLN, LISTS } from "./data/config.js";
 import { snd } from "./audio.js";
 import { go, render } from "./router.js";
 import { closeModal } from "./ui/modal.js";
-import { refreshVerbs } from "./views/verbs.js";
+import { refreshVerbs, cambiarVerbos, confirmarVerbos } from "./views/verbs.js";
 import { say, renderPlay } from "./views/game.js";
 import { startLevel, startPractice, place, check } from "./game.js";
 import {
@@ -178,8 +178,7 @@ export function initEvents() {
         if (pr === "all") s = new Set(BASE.map((v) => v[0]));
         else if (pr === "none") s = new Set();
         else s = new Set(listInfs(LISTS.find((l) => l.id === pr)));
-        saveSel(s);
-        refreshVerbs();
+        cambiarVerbos(s);
         break;
       }
       case "tv": {
@@ -187,10 +186,12 @@ export function initEvents() {
           inf = a.dataset.inf;
         if (set.has(inf)) set.delete(inf);
         else set.add(inf);
-        saveSel(set);
-        refreshVerbs();
+        cambiarVerbos(set);
         break;
       }
+      case "verbschange":
+        confirmarVerbos();
+        break;
       case "level": {
         var i = +a.dataset.i;
         if (unlocked(i, store.get("diff", "normal"))) {

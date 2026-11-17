@@ -3,7 +3,7 @@ import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
 import { R, setR } from "./state.js";
 import { BASE } from "./data/base-verbs.js";
-import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick } from "./verbs.js";
+import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick, addTotal } from "./verbs.js";
 import { LV } from "./data/config.js";
 import { snd } from "./audio.js";
 import { confetti } from "./confetti.js";
@@ -232,8 +232,9 @@ export function finish() {
   if (R.idx >= 0) {
     var d = store.get("diff", "normal"),
       s = getStars(d);
+    addTotal(stars); // el contador de por vida suma las estrellas de cada intento superado
     if (stars > s[R.idx]) {
-      s[R.idx] = stars;
+      s[R.idx] = stars; // el mapa guarda la mejor nota de cada nivel (es lo que abre el siguiente)
       store.set("stars." + d, s);
     }
   } else {

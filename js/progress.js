@@ -1,4 +1,4 @@
-// Progreso del alumno en su cuenta: estrellas, verbos elegidos, fallos y dificultad.
+// Progreso del alumno en su cuenta: estrellas (mapa y contador total), verbos elegidos, fallos y dificultad.
 //
 // El juego sigue guardando todo en el navegador (store) y de ahí lee. Este módulo lo copia a la cuenta del alumno
 // (un poco después de cada cambio) y lo trae al entrar desde otro dispositivo:
@@ -11,7 +11,7 @@ import { store } from "./store.js";
 import { online } from "./online.js";
 
 const DIFFS = ["easy", "normal", "hard"];
-const CLAVES = ["sel", "miss", "diff", "stars.easy", "stars.normal", "stars.hard"];
+const CLAVES = ["sel", "miss", "diff", "total", "stars.easy", "stars.normal", "stars.hard"];
 const ESPERA = 2000;
 
 let aplicando = false;
@@ -26,6 +26,8 @@ export function snapshot() {
     if (v) stars[d] = v;
   }
   if (Object.keys(stars).length) p.stars = stars;
+  const total = store.get("total", null);
+  if (total !== null) p.total = total;
   const sel = store.get("sel", null);
   if (sel) p.sel = sel;
   const miss = store.get("miss", null);
@@ -50,6 +52,7 @@ export function apply(progress) {
   aplicando = true;
   const p = progress || {};
   for (const d of DIFFS) if (p.stars && p.stars[d]) store.set("stars." + d, p.stars[d]);
+  if (Number.isInteger(p.total)) store.set("total", p.total);
   if (p.sel) store.set("sel", p.sel);
   if (p.miss) store.set("miss", p.miss);
   if (p.diff) store.set("diff", p.diff);

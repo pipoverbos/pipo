@@ -106,6 +106,37 @@ export function getStars(d) {
   var s = store.get("stars." + d, [0, 0, 0, 0, 0]);
   return s;
 }
+const DIFICULTADES = ["easy", "normal", "hard"];
+/** Estrellas del mapa de niveles actual (las tres dificultades): lo que se ve en los niveles. */
+export function mapStars() {
+  return DIFICULTADES.reduce(function (a, d) {
+    return (
+      a +
+      getStars(d).reduce(function (x, y) {
+        return x + y;
+      }, 0)
+    );
+  }, 0);
+}
+/**
+ * Estrellas conseguidas en total, de por vida. El mapa de niveles empieza de nuevo cuando se cambian los verbos
+ * (los niveles se forman con ellos), pero este contador sigue sumando. Quien ya tenía estrellas antes de que
+ * existiera el contador empieza con las de su mapa.
+ */
+export function totalStars() {
+  var t = store.get("total", null);
+  return t === null ? mapStars() : t;
+}
+export function addTotal(n) {
+  if (n > 0) store.set("total", Math.min(999999, totalStars() + n));
+}
+/** El mapa de niveles vuelve a empezar; las estrellas ya ganadas se quedan en el contador. */
+export function resetMap() {
+  store.set("total", totalStars());
+  DIFICULTADES.forEach(function (d) {
+    store.remove("stars." + d);
+  });
+}
 export function unlocked(i, d) {
   return i === 0 || getStars(d)[i - 1] > 0;
 }

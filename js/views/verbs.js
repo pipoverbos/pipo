@@ -1,7 +1,8 @@
 // Mis verbos: elegir verbos uno a uno o por listas, y buscar.
 import { $, esc } from "../utils.js";
 import { S } from "../state.js";
-import { selSet, selV } from "../verbs.js";
+import { selSet, selV, saveSel, mapStars, totalStars, resetMap } from "../verbs.js";
+import { modal, closeModal } from "../ui/modal.js";
 import { BASE } from "../data/base-verbs.js";
 import { MIN, LISTS } from "../data/config.js";
 import { ICON } from "../ui/icons.js";
@@ -62,4 +63,38 @@ export function refreshVerbs() {
     n +
     (n === 1 ? " verbo elegido" : " verbos elegidos") +
     (n < MIN ? " · necesitas al menos " + MIN + " para jugar" : "");
+}
+
+/**
+ * Cambiar los verbos elegidos. Como los niveles se forman con ellos, el mapa de niveles empieza de nuevo; las estrellas
+ * ya ganadas se quedan en el contador total. Si el mapa tiene estrellas, antes se pide confirmación.
+ */
+export function cambiarVerbos(nuevos) {
+  const ahora = selSet();
+  if (nuevos.size === ahora.size && [...nuevos].every((v) => ahora.has(v))) return;
+  if (mapStars() > 0) {
+    S.vpend = Array.from(nuevos);
+    modal(
+      "<h2>¿Cambiar tus verbos?</h2>" +
+        "<p>Los niveles se forman con tus verbos, así que el mapa <b>empezará de nuevo</b>. " +
+        "Tus estrellas no se pierden: se quedan en tu contador (<b>" +
+        totalStars() +
+        "</b> en total) y seguirán sumando.</p>" +
+        '<div class="row"><button class="btn go" data-act="modalclose">Mejor no</button>' +
+        '<button class="btn" data-act="verbschange">Sí, cambiar</button></div>'
+    );
+    return;
+  }
+  aplicarVerbos(nuevos);
+}
+export function confirmarVerbos() {
+  const nuevos = new Set(S.vpend || []);
+  S.vpend = null;
+  closeModal();
+  aplicarVerbos(nuevos);
+}
+function aplicarVerbos(nuevos) {
+  if (mapStars() > 0) resetMap();
+  saveSel(nuevos);
+  refreshVerbs();
 }
