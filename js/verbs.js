@@ -1,6 +1,7 @@
 // Verbos elegidos y listas, comparación de respuestas, estrellas y errores.
 import { store } from "./store.js";
 import { BASE } from "./data/base-verbs.js";
+import { LISTS } from "./data/config.js";
 
 /** Infinitivos de una lista de LISTS (de `from` a `to`, según el orden de BASE). */
 export function listInfs(list) {
@@ -40,11 +41,53 @@ export function maskTrick(row, conocidas) {
   });
   return texto;
 }
+const TODAS_LAS_DIFICULTADES = ["easy", "normal", "hard"];
+/**
+ * Ajustes de la clase de aula en la que está el alumno: listas de verbos (1 a 6) y dificultades que su profesor
+ * permite. Sin una clase de aula (solo, o en un reto) todo está permitido.
+ */
+export function ajustesDeClase() {
+  var c = store.get("cls", null);
+  if (!c || c.kind !== "aula") return { lists: [1, 2, 3, 4, 5, 6], diffs: TODAS_LAS_DIFICULTADES, limitada: false };
+  return { lists: c.lists, diffs: c.diffs, limitada: c.lists.length < 6 || c.diffs.length < 3 };
+}
+/** Infinitivos de las listas permitidas, o null si la clase no limita las listas. */
+export function verbosPermitidos() {
+  var a = ajustesDeClase();
+  if (a.lists.length === 6) return null;
+  var s = new Set();
+  a.lists.forEach(function (n) {
+    listInfs(LISTS[n - 1]).forEach(function (inf) {
+      s.add(inf);
+    });
+  });
+  return s;
+}
+/** La dificultad con la que se juega: la elegida, o la permitida más cercana si la clase no admite la elegida. */
+export function diffActual() {
+  var d = store.get("diff", "normal"),
+    ok = ajustesDeClase().diffs;
+  if (ok.indexOf(d) >= 0) return d;
+  var pos = TODAS_LAS_DIFICULTADES.indexOf(d);
+  return TODAS_LAS_DIFICULTADES.filter(function (x) {
+    return ok.indexOf(x) >= 0;
+  }).sort(function (a, b) {
+    return (
+      Math.abs(TODAS_LAS_DIFICULTADES.indexOf(a) - pos) - Math.abs(TODAS_LAS_DIFICULTADES.indexOf(b) - pos) ||
+      TODAS_LAS_DIFICULTADES.indexOf(a) - TODAS_LAS_DIFICULTADES.indexOf(b)
+    );
+  })[0];
+}
 export function selSet() {
   var s = store.get("sel", null);
   if (!s)
     s = BASE.map(function (v) {
       return v[0];
+    });
+  var perm = verbosPermitidos();
+  if (perm)
+    s = s.filter(function (v) {
+      return perm.has(v);
     });
   return new Set(s);
 }
@@ -149,5 +192,17 @@ export function addMiss(inf) {
   store.set("miss", m);
 }
 export function saveSel(set) {
-  store.set("sel", Array.from(set));
+  var out = new Set(set),
+    perm = verbosPermitidos();
+  // Los verbos que la clase no permite se conservan en lo guardado, para recuperarlos al salir de la clase.
+  if (perm)
+    (
+      store.get("sel", null) ||
+      BASE.map(function (v) {
+        return v[0];
+      })
+    ).forEach(function (v) {
+      if (!perm.has(v)) out.add(v);
+    });
+  store.set("sel", Array.from(out));
 }

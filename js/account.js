@@ -7,6 +7,7 @@ import { online } from "./online.js";
 import { go, render } from "./router.js";
 import { modal, closeModal } from "./ui/modal.js";
 import { apply, adoptar, traer, guardar, clearLocal, snapshot } from "./progress.js";
+import { loadClasses } from "./prof.js";
 
 const setErr = (id, msg, field) => {
   const e = $("#" + id);
@@ -18,6 +19,12 @@ const setErr = (id, msg, field) => {
 };
 
 /** A dónde va cada rol cuando ya tiene sesión. El alumnado pasa antes por la presentación si aún no tiene apodo. */
+/** Va a una pantalla; la zona del profesor pide además su lista de clases. */
+function irA(pantalla) {
+  go(pantalla);
+  if (pantalla === "prof") loadClasses();
+}
+
 function destino(role) {
   if (role === "profe") return "prof";
   return store.get("seen", false) && validAlias(store.get("name", "")) ? "home" : "meet";
@@ -29,7 +36,7 @@ export function entrarComo(role) {
   S.meet = 0;
   const a = online.account();
   if (a && a.role === role) {
-    go(destino(role));
+    irA(destino(role));
     if (role === "alumno") sincronizar();
     return;
   }
@@ -112,7 +119,7 @@ export async function authSubmit() {
       );
     }
     if (r.role === "alumno") await sincronizarTrasEntrar();
-    go(r.mustChange ? "changepass" : destino(r.role));
+    irA(r.mustChange ? "changepass" : destino(r.role));
   } catch (e) {
     if (S.screen !== "auth") return;
     btn.disabled = false;
@@ -183,7 +190,7 @@ export function recoveryContinue() {
   if (!S.rec) return go("role");
   const next = S.rec.next;
   S.rec = null; // el código no se vuelve a mostrar
-  go(next);
+  irA(next);
 }
 
 // ---- contraseña temporal ----
@@ -213,7 +220,7 @@ export async function changePassSubmit() {
   }
   const volver = S.cpVolver;
   S.cpVolver = false;
-  go(volver ? "myaccount" : destino((online.account() || {}).role));
+  irA(volver ? "myaccount" : destino((online.account() || {}).role));
 }
 
 export function changePassOpen() {

@@ -163,20 +163,6 @@ export function changePassView(v) {
     "</section>";
 }
 
-/** Zona del profesorado: de momento solo confirma la sesión; la lista de clases llega en la siguiente entrega. */
-export function profView(v) {
-  const a = online.account();
-  v.innerHTML =
-    '<section class="cls">' +
-    '<div class="top"><h1>Mis clases</h1></div>' +
-    "<p>Sesión de <b>" +
-    esc(a ? a.username : "") +
-    '</b>.</p><div class="card mt note">Próximamente: aquí verás y crearás tus clases, elegirás qué verbos y dificultades pueden jugar tus alumnos y verás cómo les va.</div>' +
-    '<div class="row center mt"><button class="btn" data-act="myaccount">Mi cuenta</button></div>' +
-    '<div class="teachbox"><button class="btn" data-act="logout">Cerrar sesión</button></div>' +
-    "</section>";
-}
-
 /** Mi cuenta: usuario, cambiar la contraseña, cerrar sesión y borrar la cuenta (con todos sus datos). */
 export function myAccountView(v) {
   const a = online.account();

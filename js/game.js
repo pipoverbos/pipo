@@ -3,7 +3,19 @@ import { $, esc, shuffle } from "./utils.js";
 import { store } from "./store.js";
 import { R, setR } from "./state.js";
 import { BASE } from "./data/base-verbs.js";
-import { selV, selSet, score, reg, same, getStars, missMap, addMiss, maskTrick, addTotal } from "./verbs.js";
+import {
+  selV,
+  selSet,
+  diffActual,
+  score,
+  reg,
+  same,
+  getStars,
+  missMap,
+  addMiss,
+  maskTrick,
+  addTotal,
+} from "./verbs.js";
 import { LV } from "./data/config.js";
 import { snd } from "./audio.js";
 import { confetti } from "./confetti.js";
@@ -15,7 +27,7 @@ import { enClase, tipoDeClase, datosDePartida, sendRun } from "./classes.js";
 import { say, renderHud, renderPlay, shakeSlot } from "./views/game.js";
 
 export function cfgFor(i) {
-  var d = store.get("diff", "normal"),
+  var d = diffActual(),
     L = LV[i];
   return { n: L.n, cols: L.cols, g: L.gaps[d], tr: L.tr[d], type: L.type, intro: L.intro(L.gaps[d]) };
 }
@@ -230,7 +242,7 @@ export function finish() {
   R.done = true;
   var stars = R.mis === 0 ? 3 : R.mis <= 2 ? 2 : 1;
   if (R.idx >= 0) {
-    var d = store.get("diff", "normal"),
+    var d = diffActual(),
       s = getStars(d);
     addTotal(stars); // el contador de por vida suma las estrellas de cada intento superado
     if (stars > s[R.idx]) {
@@ -284,7 +296,7 @@ export function finish() {
       "</div>"
   );
   say(title, "cheer");
-  if (enviar) sendRun(datosDePartida(R, store.get("diff", "normal"), tipoDeClase()));
+  if (enviar) sendRun(datosDePartida(R, diffActual(), tipoDeClase()));
 }
 export function showDead() {
   modal(

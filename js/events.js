@@ -3,7 +3,7 @@ import { $, cleanAlias, validAlias } from "./utils.js";
 import { store } from "./store.js";
 import { online } from "./online.js";
 import { S, R, setR } from "./state.js";
-import { selSet, selV, unlocked, listInfs } from "./verbs.js";
+import { selSet, selV, unlocked, listInfs, diffActual } from "./verbs.js";
 import { BASE } from "./data/base-verbs.js";
 import { MIN, COLN, LISTS } from "./data/config.js";
 import { snd } from "./audio.js";
@@ -27,6 +27,28 @@ import {
   accountDelete,
   logout,
 } from "./account.js";
+import {
+  loadClasses,
+  profCreate,
+  openProfClass,
+  profBack,
+  profTab,
+  profReload,
+  profCopyCode,
+  cfgToggle,
+  cfgSave,
+  profDelAsk,
+  profDel,
+  profStudent,
+  profStudentBack,
+  studentPdf,
+  studentRemoveAsk,
+  studentRemove,
+  studentResetAsk,
+  studentReset,
+  tempCopy,
+  tempClose,
+} from "./prof.js";
 import {
   openClass,
   loadRank,
@@ -136,6 +158,69 @@ export function initEvents() {
       case "logout":
         logout();
         break;
+      case "proflist":
+        loadClasses();
+        break;
+      case "profnew":
+        go("profnew");
+        break;
+      case "profnewsubmit":
+        profCreate();
+        break;
+      case "profopen":
+        openProfClass(a.dataset.code);
+        break;
+      case "profback":
+        profBack();
+        break;
+      case "proftab":
+        profTab(a.dataset.t);
+        break;
+      case "profreload":
+        profReload();
+        break;
+      case "profcopy":
+        profCopyCode();
+        break;
+      case "cfgtoggle":
+        cfgToggle(a.dataset.k, a.dataset.v, a.checked);
+        break;
+      case "cfgsave":
+        cfgSave();
+        break;
+      case "profdelask":
+        profDelAsk();
+        break;
+      case "profdel":
+        profDel();
+        break;
+      case "profstudent":
+        profStudent(a.dataset.alias);
+        break;
+      case "profstudentback":
+        profStudentBack();
+        break;
+      case "studentpdf":
+        studentPdf();
+        break;
+      case "studentremoveask":
+        studentRemoveAsk();
+        break;
+      case "studentremove":
+        studentRemove();
+        break;
+      case "studentresetask":
+        studentResetAsk();
+        break;
+      case "studentreset":
+        studentReset();
+        break;
+      case "tempcopy":
+        tempCopy();
+        break;
+      case "tempclose":
+        tempClose();
+        break;
       case "myaccount":
         S.cpVolver = false;
         go("myaccount");
@@ -194,7 +279,7 @@ export function initEvents() {
         break;
       case "level": {
         var i = +a.dataset.i;
-        if (unlocked(i, store.get("diff", "normal"))) {
+        if (unlocked(i, diffActual())) {
           startLevel(i, false);
         }
         break;
@@ -288,6 +373,7 @@ export function initEvents() {
       fn: "forgotsubmit",
       "cp-old": "changepasssubmit",
       "cp-new": "changepasssubmit",
+      pn: "profnewsubmit",
     }[e.target.id];
     if (e.key === "Enter" && enter) {
       e.preventDefault();
@@ -300,7 +386,9 @@ export function initEvents() {
     }
     // Escape en una ventana de resultado: la salida segura es volver al mapa o al inicio.
     if (e.key === "Escape") {
-      var out = $('#modal [data-act="map"], #modal [data-act="home"], #modal [data-act="modalclose"]');
+      var out = $(
+        '#modal [data-act="map"], #modal [data-act="home"], #modal [data-act="modalclose"], #modal [data-act="tempclose"]'
+      );
       if (out) out.click();
     }
   });

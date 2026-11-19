@@ -2,13 +2,14 @@
 import { esc, pick } from "../utils.js";
 import { store } from "../store.js";
 import { online } from "../online.js";
-import { selV, selSet, getStars, missMap, totalStars } from "../verbs.js";
+import { selV, selSet, getStars, missMap, totalStars, diffActual, ajustesDeClase } from "../verbs.js";
 import { MIN, DIFFS, DIFFD } from "../data/config.js";
 import { pipo } from "../ui/pipo.js";
 import { ICON, starSVG } from "../ui/icons.js";
 
 export function homeView(v) {
-  var d = store.get("diff", "normal"),
+  var d = diffActual(),
+    ajustes = ajustesDeClase(),
     name = store.get("name", ""),
     clase = online.session(),
     n = selV().length,
@@ -43,6 +44,9 @@ export function homeView(v) {
     '</div><div class="hright">' +
     '<h2 class="sec">Dificultad</h2><div class="seg" role="group" aria-label="Dificultad">' +
     ["easy", "normal", "hard"]
+      .filter(function (k) {
+        return ajustes.diffs.indexOf(k) >= 0;
+      })
       .map(function (k) {
         return (
           '<button data-act="diff" data-d="' +
@@ -61,6 +65,9 @@ export function homeView(v) {
     '<p class="muted" style="margin-top:8px">' +
     DIFFD[d] +
     "</p>" +
+    (ajustes.limitada
+      ? '<p class="muted small">Tu profe ha elegido las listas de verbos y las dificultades de esta clase.</p>'
+      : "") +
     '<h2 class="sec">Tus cosas</h2>' +
     '<button class="opt" data-act="verbs"><span><b>Mis verbos</b><small>' +
     n +

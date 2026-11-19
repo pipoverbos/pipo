@@ -1,7 +1,7 @@
 // Mis verbos: elegir verbos uno a uno o por listas, y buscar.
 import { $, esc } from "../utils.js";
 import { S } from "../state.js";
-import { selSet, selV, saveSel, mapStars, totalStars, resetMap } from "../verbs.js";
+import { selSet, selV, saveSel, mapStars, totalStars, resetMap, ajustesDeClase, verbosPermitidos } from "../verbs.js";
 import { modal, closeModal } from "../ui/modal.js";
 import { BASE } from "../data/base-verbs.js";
 import { MIN, LISTS } from "../data/config.js";
@@ -10,15 +10,19 @@ import { focusSignature, restoreFocus } from "../ui/focus.js";
 
 export function verbsView(v) {
   const pill = (p, text) => `<button class="pill" data-act="pre" data-p="${p}">${text}</button>`;
+  const ajustes = ajustesDeClase();
   const pills =
     pill("all", "Todos") +
     pill("none", "Ninguno") +
-    LISTS.map((l) => pill(l.id, `${l.name} (${l.from}–${l.to})`)).join("");
+    LISTS.filter((l, i) => ajustes.lists.includes(i + 1))
+      .map((l) => pill(l.id, `${l.name} (${l.from}–${l.to})`))
+      .join("");
   v.innerHTML =
     '<section><div class="top"><button class="iconbtn" data-act="home" aria-label="Volver">' +
     ICON.back +
     "</button><h1>Mis verbos</h1></div>" +
     '<p><b id="vcount"></b></p>' +
+    (ajustes.limitada ? '<p class="muted small">Tu profe ha elegido estas listas de verbos para tu clase.</p>' : "") +
     `<div class="chiprow">${pills}</div>` +
     '<input class="field mt" id="vq" type="search" placeholder="Buscar un verbo" autocomplete="off" value="' +
     esc(S.vq) +
@@ -31,7 +35,10 @@ export function refreshVerbs() {
   const sig = focusSignature($("#view"));
   const q = S.vq.toLowerCase().trim();
   const sel = selSet();
-  const list = BASE.filter((v) => !q || v[0].indexOf(q) > -1 || v[3].toLowerCase().indexOf(q) > -1);
+  const perm = verbosPermitidos();
+  const list = BASE.filter(
+    (v) => (!perm || perm.has(v[0])) && (!q || v[0].indexOf(q) > -1 || v[3].toLowerCase().indexOf(q) > -1)
+  );
   const html = list
     .map((v) => {
       const on = sel.has(v[0]);
@@ -70,6 +77,8 @@ export function refreshVerbs() {
  * ya ganadas se quedan en el contador total. Si el mapa tiene estrellas, antes se pide confirmación.
  */
 export function cambiarVerbos(nuevos) {
+  const perm = verbosPermitidos();
+  if (perm) nuevos = new Set([...nuevos].filter((v) => perm.has(v))); // una clase puede limitar las listas
   const ahora = selSet();
   if (nuevos.size === ahora.size && [...nuevos].every((v) => ahora.has(v))) return;
   if (mapStars() > 0) {

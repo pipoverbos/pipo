@@ -1,6 +1,5 @@
 // Mapa de niveles.
-import { store } from "../store.js";
-import { getStars, selV, unlocked } from "../verbs.js";
+import { getStars, selV, unlocked, diffActual } from "../verbs.js";
 import { DIFFS, LV } from "../data/config.js";
 import { ICON, starsHTML } from "../ui/icons.js";
 
@@ -17,7 +16,7 @@ function levelDesc(i, d) {
   return t + ".";
 }
 export function mapView(v) {
-  var d = store.get("diff", "normal"),
+  var d = diffActual(),
     stars = getStars(d),
     n = selV().length;
   var h =

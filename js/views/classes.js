@@ -39,14 +39,11 @@ export function joinView(v) {
     "</section>";
 }
 
-export function rankView(v) {
-  const r = S.rank;
-  if (!r) return;
-  const yo = (online.session() || {}).alias,
-    dueno = online.session();
-  const filas = r.rows
+/** La lista del ranking (apodo, niveles y puntos). `yo` marca la fila propia; el texto del servidor siempre se escapa. */
+export function rankList(rows, yo) {
+  const filas = rows
     .map(function (f, i) {
-      const soy = r.mine && yo && f.alias.toLowerCase() === yo.toLowerCase();
+      const soy = yo && f.alias.toLowerCase() === yo.toLowerCase();
       return (
         '<li class="' +
         (soy ? "me" : "") +
@@ -66,6 +63,14 @@ export function rankView(v) {
       );
     })
     .join("");
+  return filas ? '<ol class="rank" aria-label="Clasificación de la clase">' + filas + "</ol>" : "";
+}
+
+export function rankView(v) {
+  const r = S.rank;
+  if (!r) return;
+  const yo = r.mine ? (online.session() || {}).alias : null,
+    dueno = online.session();
   v.innerHTML =
     '<section class="cls">' +
     cabecera("Ranking", "home") +
@@ -80,7 +85,7 @@ export function rankView(v) {
     (r.status === "ok" && !r.rows.length
       ? '<p class="mt">Todavía no hay partidas en esta clase. ¡Sé la primera persona!</p>'
       : "") +
-    (filas ? '<ol class="rank" aria-label="Clasificación de la clase">' + filas + "</ol>" : "") +
+    rankList(r.rows, yo) +
     '<p class="muted small center">Cuenta la mejor partida de cada nivel y dificultad. Repetir un nivel solo sube tu marca si lo haces mejor.</p>' +
     (r.mine
       ? '<div class="teachbox"><button class="linkbtn" data-act="leaveask">Salir de la clase y borrar mis datos</button>' +

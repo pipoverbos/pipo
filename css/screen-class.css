@@ -185,3 +185,95 @@
 .note.warn {
   background: #ffd9d2;
 }
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.student {
+  margin-top: 12px;
+}
+.fail {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  padding: 0 8px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #ffd9d2;
+  font-size: 16px;
+}
+.cfg {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+.cfg legend {
+  padding: 0;
+}
+.code {
+  margin-left: 8px;
+  padding: 0 8px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--h3);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 15px;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+.tbl th {
+  padding: 4px;
+  border-bottom: 2px solid var(--ink);
+  font-size: 14px;
+  text-align: left;
+}
+.tbl td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--grid);
+}
+.report .repname {
+  margin: 0;
+  font-size: 28px;
+}
+.repsum {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.onlyprint {
+  display: none;
+}
+@media print {
+  html,
+  body {
+    background: #fff;
+  }
+  .sheet {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+    min-height: 0;
+  }
+  .sheet::before,
+  .hole,
+  .noprint,
+  #conf {
+    display: none !important;
+  }
+  .onlyprint {
+    display: block;
+  }
+  .report .card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .tbl tr {
+    break-inside: avoid;
+  }
+}
