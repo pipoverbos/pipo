@@ -36,6 +36,10 @@ export const MENSAJES = {
   rol_invalido: "No he podido crear la cuenta. Inténtalo otra vez.",
   ya_en_clase: "Ya estás en una clase. Sal de ella antes de unirte a otra.",
   demasiados_retos: "Ya has creado muchos retos. Borra alguno para crear otro.",
+  demasiadas_clases: "Ya tienes 20 clases. Borra alguna para crear otra.",
+  configuracion_invalida: "Elige al menos una lista de verbos y una dificultad.",
+  alumno_no_existe: "No hay nadie con ese apodo en esta clase.",
+  alumno_sin_cuenta: "Ese alumno es de una versión antigua y no tiene contraseña que restablecer.",
   progreso_invalido: "No he podido guardar tu progreso.",
   dificultad_no_permitida: "Tu profe no permite esa dificultad en esta clase.",
   sin_conexion: "No hay conexión. Puedes seguir jugando e intentarlo más tarde.",
@@ -121,6 +125,17 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       throw e;
     }
   }
+  /** La cuenta con la que se ha entrado, que tiene que ser de profesor. */
+  function cuentaProfe() {
+    const a = store.get("acc", null);
+    if (!a) throw new OnlineError("sesion_no_valida");
+    if (a.role !== "profe") throw new OnlineError("rol_no_permitido");
+    return a;
+  }
+  const listasValidas = (l) =>
+    Array.isArray(l) && l.length >= 1 && l.length <= 6 && l.every((n) => Number.isInteger(n) && n >= 1 && n <= 6);
+  const dificultadesValidas = (d) =>
+    Array.isArray(d) && d.length >= 1 && d.length <= 3 && d.every((x) => TODAS_LAS_DIFICULTADES.includes(x));
   const nombreValido = (n) => typeof n === "string" && n.length >= 1 && n.length <= 40;
   /** Guarda la copia local de la clase a partir de lo que contesta el servidor (que es quien manda). */
   function guardarClase(r, alias, nombre, dueno, codigo = r.code) {
@@ -217,6 +232,139 @@ export function createClient({ url, key, timeoutMs = 8000, fetchFn = (...a) => g
       } catch {
         /* sin conexión: la sesión del servidor caducará sola */
       }
+    },
+
+    // ---- profesorado: clases de aula, seguimiento y ajustes ----
+
+    /** Lista de clases del profesor: [{code, name, players, lastRun, lists, diffs}]. */
+    async profClasses() {
+      const a = cuentaProfe();
+      const r = await conSesion(a, () => rpc("prof_classes", { p_token: a.token }));
+      if (!Array.isArray(r)) throw malaRespuesta();
+      return r.map((c) => {
+        if (
+          !c ||
+          !CODIGO.test(c.code) ||
+          !nombreValido(c.name) ||
+          !esEntero(c.players) ||
+          !(c.last_run === null || typeof c.last_run === "string") ||
+          !listasValidas(c.allowed_lists) ||
+          !dificultadesValidas(c.allowed_difficulties)
+        )
+          throw malaRespuesta();
+        return {
+          code: c.code,
+          name: c.name,
+          players: c.players,
+          lastRun: c.last_run,
+          lists: c.allowed_lists,
+          diffs: c.allowed_difficulties,
+        };
+      });
+    },
+
+    /** Crea una clase de aula y devuelve su código. */
+    async profCreateClass(name) {
+      const a = cuentaProfe();
+      const r = primera(
+        await conSesion(a, () => rpc("prof_create_class", { p_token: a.token, p_name: String(name ?? "") }))
+      );
+      if (!r || !CODIGO.test(r.code) || !nombreValido(r.name)) throw malaRespuesta();
+      return { code: r.code, name: r.name };
+    },
+
+    /** Qué listas de verbos (1 a 6) y qué dificultades pueden jugar los alumnos de la clase. */
+    async profSetConfig(code, lists, diffs) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      if (!listasValidas(lists) || !dificultadesValidas(diffs)) throw new OnlineError("configuracion_invalida");
+      const ok = await conSesion(a, () =>
+        rpc("prof_set_config", { p_token: a.token, p_code: c, p_lists: lists, p_difficulties: diffs })
+      );
+      if (ok !== true) throw malaRespuesta();
+      return true;
+    },
+
+    /** Niveles y dificultades jugados por cada alumno de la clase (una fila por combinación; sin nivel si no ha jugado). */
+    async profProgress(code) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      const r = await conSesion(a, () => rpc("prof_progress", { p_token: a.token, p_code: c }));
+      if (!Array.isArray(r)) throw malaRespuesta();
+      return r.slice(0, 2000).map((f) => {
+        const sinJugar = f && f.level === null;
+        if (
+          !f ||
+          typeof f.alias !== "string" ||
+          !esEntero(f.plays) ||
+          !(sinJugar || (esEntero(f.level) && f.level <= 4 && TODAS_LAS_DIFICULTADES.includes(f.difficulty))) ||
+          !(
+            sinJugar ||
+            (esEntero(f.best_stars) && f.best_stars >= 1 && f.best_stars <= 3 && esEntero(f.best_points))
+          ) ||
+          !(f.last_played === null || typeof f.last_played === "string")
+        )
+          throw malaRespuesta();
+        return {
+          alias: f.alias,
+          level: f.level,
+          difficulty: f.difficulty,
+          plays: f.plays,
+          stars: f.best_stars,
+          points: f.best_points,
+          last: f.last_played,
+        };
+      });
+    },
+
+    /** Verbos que ha fallado cada alumno y cuántas veces: [{alias, verb, times}]. */
+    async profMisses(code) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      const r = await conSesion(a, () => rpc("prof_misses", { p_token: a.token, p_code: c }));
+      if (!Array.isArray(r)) throw malaRespuesta();
+      return r.slice(0, 5000).map((f) => {
+        if (!f || typeof f.alias !== "string" || typeof f.verb !== "string" || !esEntero(f.times))
+          throw malaRespuesta();
+        return { alias: f.alias, verb: f.verb, times: f.times };
+      });
+    },
+
+    /** Saca a un alumno de la clase (su cuenta sigue existiendo). Devuelve si había alguien con ese apodo. */
+    async profRemoveStudent(code, alias) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      const ok = await conSesion(a, () =>
+        rpc("prof_remove_student", { p_token: a.token, p_code: c, p_alias: String(alias ?? "") })
+      );
+      if (typeof ok !== "boolean") throw malaRespuesta();
+      return ok;
+    },
+
+    /** Pone una contraseña temporal a un alumno de la clase. Se devuelve una sola vez. */
+    async profResetStudent(code, alias) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      const r = await conSesion(a, () =>
+        rpc("prof_reset_student", { p_token: a.token, p_code: c, p_alias: String(alias ?? "") })
+      );
+      if (typeof r !== "string" || !/^[a-hj-km-np-z2-9]{8}$/.test(r)) throw malaRespuesta();
+      return r;
+    },
+
+    /** Borra la clase entera, con sus alumnos y partidas. */
+    async profDeleteClass(code) {
+      const a = cuentaProfe();
+      const c = cleanCode(code);
+      if (!c) throw new OnlineError("codigo_invalido");
+      const ok = await conSesion(a, () => rpc("prof_delete_class", { p_token: a.token, p_code: c }));
+      if (ok !== true) throw malaRespuesta();
+      return true;
     },
 
     /** Borra la cuenta (pide la contraseña) y con ella el progreso, el sitio en la clase y los retos propios. */

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BASE } from "../../js/data/base-verbs.js";
+import { LISTS } from "../../js/data/config.js";
 
 // store.js guarda una copia en memoria, así que cada test importa módulos nuevos para empezar de cero.
 let v, store;
@@ -145,6 +146,85 @@ describe("contador de estrellas total", () => {
       localStorage.setItem("pipo2.total", JSON.stringify(malo));
       expect(store.get("total", null)).toBeNull();
     }
+  });
+});
+
+describe("ajustes de la clase del profesor", () => {
+  const aula = (lists, diffs) =>
+    store.set("cls", { code: "ABC234", name: "1º A", alias: "Pipa", kind: "aula", owner: false, lists, diffs });
+  const lista = (n) => v.listInfs(LISTS[n - 1]);
+
+  it("sin clase, o en un reto, todo está permitido", () => {
+    expect(v.ajustesDeClase()).toEqual({
+      lists: [1, 2, 3, 4, 5, 6],
+      diffs: ["easy", "normal", "hard"],
+      limitada: false,
+    });
+    store.set("cls", {
+      code: "ABC234",
+      name: "R",
+      alias: "Pipa",
+      kind: "reto",
+      owner: true,
+      lists: [1],
+      diffs: ["easy"],
+    });
+    expect(v.ajustesDeClase().limitada).toBe(false);
+    expect(v.verbosPermitidos()).toBeNull();
+    expect(v.selSet().size).toBe(BASE.length);
+  });
+  it("una clase de aula con todo permitido no limita nada", () => {
+    aula([1, 2, 3, 4, 5, 6], ["easy", "normal", "hard"]);
+    expect(v.ajustesDeClase().limitada).toBe(false);
+    expect(v.verbosPermitidos()).toBeNull();
+  });
+  it("una clase de aula limita las listas y las dificultades", () => {
+    aula([1, 3], ["easy"]);
+    expect(v.ajustesDeClase()).toEqual({ lists: [1, 3], diffs: ["easy"], limitada: true });
+    expect([...v.verbosPermitidos()].sort()).toEqual([...lista(1), ...lista(3)].sort());
+  });
+  it("solo se pueden elegir verbos de las listas permitidas, aunque hubiera otros guardados", () => {
+    store.set("sel", [...lista(1), ...lista(2)]);
+    aula([2], ["normal"]);
+    expect([...v.selSet()].sort()).toEqual([...lista(2)].sort());
+    expect(v.selV().every((x) => lista(2).includes(x[0]))).toBe(true);
+  });
+  it("sin selección guardada se eligen todos los verbos permitidos (y solo ellos)", () => {
+    aula([5], ["normal"]);
+    expect([...v.selSet()].sort()).toEqual([...lista(5)].sort());
+  });
+  it("al guardar la selección se conservan los verbos que la clase no permite, para recuperarlos al salir", () => {
+    store.set("sel", [...lista(1), ...lista(6)]);
+    aula([1], ["normal"]);
+    v.saveSel(new Set(lista(1).slice(0, 3)));
+    expect([...v.selSet()].sort()).toEqual(lista(1).slice(0, 3).sort());
+    store.remove("cls");
+    expect([...v.selSet()].sort()).toEqual([...lista(1).slice(0, 3), ...lista(6)].sort());
+  });
+  it("sin selección guardada, al guardar dentro de la clase no se pierden los demás verbos al salir", () => {
+    aula([1], ["normal"]);
+    v.saveSel(new Set(lista(1).slice(0, 2)));
+    store.remove("cls");
+    expect(v.selSet().size).toBe(BASE.length - lista(1).length + 2);
+  });
+  it("la dificultad con la que se juega es la elegida si la clase la admite, y si no, la permitida más cercana", () => {
+    store.set("diff", "hard");
+    aula([1, 2, 3, 4, 5, 6], ["easy", "normal"]);
+    expect(v.diffActual()).toBe("normal");
+    aula([1, 2, 3, 4, 5, 6], ["hard"]);
+    expect(v.diffActual()).toBe("hard");
+    aula([1, 2, 3, 4, 5, 6], ["easy", "hard"]);
+    expect(v.diffActual()).toBe("hard");
+    store.set("diff", "normal");
+    expect(v.diffActual()).toBe("easy");
+    store.remove("cls");
+    expect(v.diffActual()).toBe("normal");
+  });
+  it("coercionar la dificultad no modifica lo guardado", () => {
+    store.set("diff", "hard");
+    aula([1, 2, 3, 4, 5, 6], ["easy"]);
+    v.diffActual();
+    expect(store.get("diff", null)).toBe("hard");
   });
 });
 
